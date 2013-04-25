@@ -1,4 +1,4 @@
- This is a fork of stanford-corenlp-python (https://github.com/dasmith/stanford-corenlp-python).
+ This is a fork of [stanford-corenlp-python](https://github.com/dasmith/stanford-corenlp-python).
 
 ## Edited
    * Update to Stanford CoreNLP v1.3.5
@@ -7,9 +7,9 @@
    * Adjust parameters not to timeout in high load
 
 ## Requirements
-   * jsonrpclib (https://github.com/joshmarshall/jsonrpclib)
-   * pexpect (http://www.noah.org/wiki/pexpect)
-   * unidecode (http://pypi.python.org/pypi/Unidecode) (optionally)
+   * [jsonrpclib](https://github.com/joshmarshall/jsonrpclib)
+   * [pexpect](http://www.noah.org/wiki/pexpect)
+   * [unidecode](http://pypi.python.org/pypi/Unidecode) (optionally)
 
 ## Download and Usage
 
