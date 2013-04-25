@@ -1,11 +1,14 @@
-This is a fork of stanford-corenlp-python (https://github.com/dasmith/stanford-corenlp-python).
+ This is a fork of stanford-corenlp-python (https://github.com/dasmith/stanford-corenlp-python).
 
 ## Edited
-   * Using jsonrpclib for stability
+   * Using jsonrpclib for stability and performance
    * Can edit the constants as argument such as Stanford Core NLP directory.
+   * Adjust parameters not to timeout
 
-## Require
+## Requirements
    * jsonrpclib (https://github.com/joshmarshall/jsonrpclib)
+   * pexpect (http://www.noah.org/wiki/pexpect)
+   * unidecode (http://pypi.python.org/pypi/Unidecode) (optionally)
 
 -------------------------------------
 
