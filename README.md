@@ -1,4 +1,15 @@
-# Python interface to Stanford Core NLP tools v1.3.3
+This is a fork of stanford-corenlp-python (https://github.com/dasmith/stanford-corenlp-python).
+
+## Edited
+   * Using jsonrpclib for stability
+   * Can edit the constants as argument such as Stanford Core NLP directory.
+
+## Require
+   * jsonrpclib (https://github.com/joshmarshall/jsonrpclib)
+
+-------------------------------------
+
+ Python interface to Stanford Core NLP tools v1.3.3
 
 This is a Python wrapper for Stanford University's NLP group's Java-based [CoreNLP tools](http://nlp.stanford.edu/software/corenlp.shtml).  It can either be imported as a module or run as a JSON-RPC server. Because it uses many large trained models (requiring 3GB RAM on 64-bit machines and usually a few minutes loading time), most applications will probably want to run it as a server.
 
@@ -12,11 +23,11 @@ It requires [pexpect](http://www.noah.org/wiki/pexpect) and (optionally) [unidec
 
 It runs the Stanford CoreNLP jar in a separate process, communicates with the java process using its command-line interface, and makes assumptions about the output of the parser in order to parse it into a Python dict object and transfer it using JSON.  The parser will break if the output changes significantly, but it has been tested on **Core NLP tools version 1.3.3** released 2012-07-09.
 
-## Download and Usage 
+## Download and Usage
 
 To use this program you must [download](http://nlp.stanford.edu/software/corenlp.shtml#Download) and unpack the tgz file containing Stanford's CoreNLP package.  By default, `corenlp.py` looks for the Stanford Core NLP folder as a subdirectory of where the script is being run.
 
-In other words: 
+In other words:
 
     sudo pip install pexpect unidecode   # unidecode is optional
     git clone git://github.com/dasmith/stanford-corenlp-python.git
@@ -34,7 +45,7 @@ Optionally, you can specify a host or port:
 
 That will run a public JSON-RPC server on port 3456.
 
-Assuming you are running on port 8080, the code in `client.py` shows an example parse: 
+Assuming you are running on port 8080, the code in `client.py` shows an example parse:
 
     import jsonrpc
     from simplejson import loads
@@ -105,7 +116,7 @@ That returns a dictionary containing the keys `sentences` and (when applicable) 
 	                              u'NamedEntityTag': u'O',
 	                              u'PartOfSpeech': u'.'}]]}],
 	u'coref': [[[[u'It', 1, 0, 0, 1], [u'Hello world', 0, 1, 0, 2]]]]}
-    
+
 To use it in a regular script or to edit/debug it (because errors via RPC are opaque), load the module instead:
 
     from corenlp import *
@@ -119,12 +130,12 @@ To use it in a regular script or to edit/debug it (because errors via RPC are op
 Note: wordnet doesn't seem to be supported using this approach.  Looks like you'll need Java.
 
 Download WordNet-3.0 Prolog:  http://wordnetcode.princeton.edu/3.0/WNprolog-3.0.tar.gz
-tar xvfz WNprolog-3.0.tar.gz 
+tar xvfz WNprolog-3.0.tar.gz
 
 -->
 
 
-## Questions 
+## Questions
 
 **Stanford CoreNLP tools require a large amount of free memory**.  Java 5+ uses about 50% more RAM on 64-bit machines than 32-bit machines.  32-bit machine users can lower the memory requirements by changing `-Xmx3g` to `-Xmx2g` or even less.
 If pexpect timesout while loading models, check to make sure you have enough memory and can run the server alone without your kernel killing the java process:
@@ -140,7 +151,7 @@ This is free and open source software and has benefited from the contribution an
 
 This project has benefited from the contributions of:
 
-  * @jcc Justin Cheng 
+  * @jcc Justin Cheng
   * Abhaya Agarwal
 
 ## Related Projects
@@ -148,4 +159,3 @@ This project has benefited from the contributions of:
 These two projects are python wrappers for the [Stanford Parser](http://nlp.stanford.edu/software/lex-parser.shtml), which includes the Stanford Parser, although the Stanford Parser is another project.
   - [stanford-parser-python](http://projects.csail.mit.edu/spatial/Stanford_Parser) uses [JPype](http://jpype.sourceforge.net/) (interface to JVM)
   - [stanford-parser-jython](http://blog.gnucom.cc/2010/using-the-stanford-parser-with-jython/) uses Python
-

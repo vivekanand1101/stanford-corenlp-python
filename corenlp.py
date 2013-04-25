@@ -120,7 +120,7 @@ class StanfordCoreNLP(object):
     Command-line interaction with Stanford's CoreNLP java utilities.
     Can be run as a JSON-RPC server or imported as a module.
     """
-    def __init__(self):
+    def __init__(self, corenlp_path):
         """
         Checks the location of the jar files.
         Spawns the server as a process.
@@ -129,10 +129,6 @@ class StanfordCoreNLP(object):
                 "stanford-corenlp-2012-07-06-models.jar",
                 "joda-time.jar",
                 "xom.jar"]
-
-        # if CoreNLP libraries are in a different directory,
-        # change the corenlp_path variable to point to them
-        corenlp_path = "stanford-corenlp-2012-07-09/"
 
         java_path = "java"
         classname = "edu.stanford.nlp.pipeline.StanfordCoreNLP"
@@ -237,12 +233,14 @@ if __name__ == '__main__':
                       help='Port to serve on (default 8080)')
     parser.add_option('-H', '--host', default='127.0.0.1',
                       help='Host to serve on (default localhost; 0.0.0.0 to make public)')
+    parser.add_option('-S', '--corenlp', default="stanford-corenlp-2012-07-09/",
+                      help='Stanford CoreNLP tool directory (default stanford-corenlp-2012-07-09/)')
     options, args = parser.parse_args()
     # server = jsonrpc.Server(jsonrpc.JsonRpc20(),
     #                         jsonrpc.TransportTcpIp(addr=(options.host, int(options.port))))
     server = SimpleJSONRPCServer((options.host, int(options.port)))
 
-    nlp = StanfordCoreNLP()
+    nlp = StanfordCoreNLP(options.corenlp)
     server.register_function(nlp.parse)
 
     print 'Serving on http://%s:%s' % (options.host, options.port)
