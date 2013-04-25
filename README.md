@@ -4,7 +4,7 @@
    * Update to Stanford CoreNLP v1.3.5
    * Using jsonrpclib for stability and performance
    * Can edit the constants as argument such as Stanford Core NLP directory.
-   * Adjust parameters not to timeout
+   * Adjust parameters not to timeout in high load
 
 ## Requirements
    * jsonrpclib (https://github.com/joshmarshall/jsonrpclib)
@@ -13,7 +13,7 @@
 
 ## Download and Usage
 
-To use this program you must [download](http://nlp.stanford.edu/software/corenlp.shtml#Download) and unpack the tgz file containing Stanford's CoreNLP package.  By default, `corenlp.py` looks for the Stanford Core NLP folder as a subdirectory of where the script is being run.
+To use this program you must [download](http://nlp.stanford.edu/software/corenlp.shtml#Download) and unpack the zip file containing Stanford's CoreNLP package.  By default, `corenlp.py` looks for the Stanford Core NLP folder as a subdirectory of where the script is being run.
 
 
 In other words:
@@ -122,6 +122,9 @@ Download WordNet-3.0 Prolog:  http://wordnetcode.princeton.edu/3.0/WNprolog-3.0.
 tar xvfz WNprolog-3.0.tar.gz
 
 -->
+
+
+Following original README in stanford-corenlp-python.
 
 -------------------------------------
 
