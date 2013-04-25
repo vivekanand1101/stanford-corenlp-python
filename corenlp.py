@@ -19,7 +19,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import json, optparse, os, re, sys, time, traceback
-import jsonrpc, pexpect
+import pexpect
 from progressbar import ProgressBar, Fraction
 from unidecode import unidecode
 from jsonrpclib.SimpleJSONRPCServer import SimpleJSONRPCServer
@@ -120,15 +120,22 @@ class StanfordCoreNLP(object):
     Command-line interaction with Stanford's CoreNLP java utilities.
     Can be run as a JSON-RPC server or imported as a module.
     """
-    def __init__(self, corenlp_path, memory="3g"):
+    def __init__(self, corenlp_path="stanford-corenlp-full-2013-04-04/", memory="3g"):
         """
         Checks the location of the jar files.
         Spawns the server as a process.
         """
-        jars = ["stanford-corenlp-2012-07-09.jar",
-                "stanford-corenlp-2012-07-06-models.jar",
+
+        # TODO: Can edit jar constants
+        jars = ["stanford-corenlp-1.3.5.jar",
+                "stanford-corenlp-1.3.5-models.jar",
                 "joda-time.jar",
                 "xom.jar"]
+        jars = ["stanford-corenlp-1.3.5.jar",
+                "stanford-corenlp-1.3.5-models.jar",
+                "xom.jar",
+                "joda-time.jar",
+                "jollyday.jar"]
 
         java_path = "java"
         classname = "edu.stanford.nlp.pipeline.StanfordCoreNLP"
@@ -137,7 +144,7 @@ class StanfordCoreNLP(object):
         props = "-props default.properties"
 
         # add and check classpaths
-        jars = [corenlp_path + jar for jar in jars]
+        jars = [corenlp_path +"/"+ jar for jar in jars]
         for jar in jars:
             if not os.path.exists(jar):
                 print "Error! Cannot locate %s" % jar
@@ -233,8 +240,8 @@ if __name__ == '__main__':
                       help='Port to serve on (default 8080)')
     parser.add_option('-H', '--host', default='127.0.0.1',
                       help='Host to serve on (default localhost; 0.0.0.0 to make public)')
-    parser.add_option('-S', '--corenlp', default="stanford-corenlp-2012-07-09/",
-                      help='Stanford CoreNLP tool directory (default stanford-corenlp-2012-07-09/)')
+    parser.add_option('-S', '--corenlp', default="stanford-corenlp-full-2013-04-04",
+                      help='Stanford CoreNLP tool directory (default stanford-corenlp-full-2013-04-04/)')
     options, args = parser.parse_args()
     # server = jsonrpc.Server(jsonrpc.JsonRpc20(),
     #                         jsonrpc.TransportTcpIp(addr=(options.host, int(options.port))))
