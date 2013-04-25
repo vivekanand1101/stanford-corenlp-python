@@ -108,8 +108,8 @@ That returns a dictionary containing the keys `sentences` and (when applicable) 
 To use it in a regular script or to edit/debug it (because errors via RPC are opaque), load the module instead:
 
     from corenlp import *
-    corenlp_dir =
-    corenlp = StanfordCoreNLP(CORENLP_DIR)  # wait a few minutes...
+    corenlp_dir = "stanford-corenlp-full-2013-04-04/"
+    corenlp = StanfordCoreNLP(corenlp_dir)  # wait a few minutes...
     corenlp.parse("Parse it")
 
 <!--
