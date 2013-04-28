@@ -254,4 +254,8 @@ if __name__ == '__main__':
 
     print 'Serving on http://%s:%s' % (options.host, options.port)
     # server.serve()
-    server.serve_forever()
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print >>stderr, "Bye."
+        exit()
