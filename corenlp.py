@@ -181,8 +181,10 @@ class StanfordCoreNLP(object):
         # clean up anything leftover
         while True:
             try:
-                self.corenlp.read_nonblocking (4000, 0.3)
+                self.corenlp.read_nonblocking (4096, 0.3)
             except pexpect.TIMEOUT:
+                break
+            except pexpect.EOF:
                 break
 
         self.corenlp.sendline(text)
@@ -199,7 +201,7 @@ class StanfordCoreNLP(object):
         while True:
             # Time left, read more data
             try:
-                incoming += self.corenlp.read_nonblocking(2000, 1000)
+                incoming += self.corenlp.read_nonblocking(2048, 1)
                 if "\nNLP>" in incoming: break
                 time.sleep(0.0001)
             except pexpect.TIMEOUT:
