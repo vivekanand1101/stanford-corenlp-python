@@ -5,6 +5,7 @@
    * Using jsonrpclib for stability and performance
    * Can edit the constants as argument such as Stanford Core NLP directory.
    * Adjust parameters not to timeout in high load
+   * Other bug fix
 
 ## Requirements
    * [jsonrpclib](https://github.com/joshmarshall/jsonrpclib)
