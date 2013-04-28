@@ -20,7 +20,7 @@ To use this program you must [download](http://nlp.stanford.edu/software/corenlp
 In other words:
 
     sudo pip install jsonrpclib pexpect unidecode   # unidecode is optional
-    git clone https://torotoki@bitbucket.org/torotoki/corenlp-python.git
+    git clone https://bitbucket.org/torotoki/corenlp-python.git
 	  cd corenlp-python
     wget http://nlp.stanford.edu/software/stanford-corenlp-full-2013-04-04.zip
     unzip stanford-corenlp-full-2013-04-04.zip
