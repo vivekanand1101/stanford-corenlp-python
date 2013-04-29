@@ -144,7 +144,6 @@ class StanfordCoreNLP(object):
         # but any changes in output format will break parse_parser_results()
         property_name = "default.properties"
         current_dir_pr = os.path.dirname(os.path.abspath( __file__ )) +"/"+ property_name
-        print current_dir_pr
         if os.path.exists(property_name):
             props = "-props %s" % (property_name)
         elif os.path.exists(current_dir_pr):
