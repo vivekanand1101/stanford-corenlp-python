@@ -142,7 +142,15 @@ class StanfordCoreNLP(object):
         classname = "edu.stanford.nlp.pipeline.StanfordCoreNLP"
         # include the properties file, so you can change defaults
         # but any changes in output format will break parse_parser_results()
-        props = "-props default.properties"
+        property_name = "default.properties"
+        current_dir_pr = os.path.dirname(os.path.abspath( __file__ )) +"/"+ property_name
+        if os.path.exists(property_name):
+            props = "-props %s" % (property_name)
+        elif os.path.exists(current_dir_pr):
+            props = "-props %s" % (current_dir_pr)
+        else:
+            print "Error! Cannot locate: default.properties"
+            sys.exit(1)
 
         # add and check classpaths
         jars = [corenlp_path +"/"+ jar for jar in jars]
@@ -151,8 +159,14 @@ class StanfordCoreNLP(object):
                 print "Error! Cannot locate %s" % jar
                 sys.exit(1)
 
+        # add memory limit on JVM
+        if memory:
+            limit = "-Xmx%s" % memory
+        else:
+            limit = ""
+
         # spawn the server
-        start_corenlp = "%s -Xmx%s -cp %s %s %s" % (java_path, memory, ':'.join(jars), classname, props)
+        start_corenlp = "%s %s -cp %s %s %s" % (java_path, limit, ':'.join(jars), classname, props)
         if VERBOSE: print start_corenlp
         self.corenlp = pexpect.spawn(start_corenlp)
 

@@ -1,4 +1,6 @@
- This is a fork of [stanford-corenlp-python](https://github.com/dasmith/stanford-corenlp-python).
+ A Stanford Core NLP Python wrapper
+
+This is a fork of [stanford-corenlp-python](https://github.com/dasmith/stanford-corenlp-python).
 
 ## Edited
    * Update to Stanford CoreNLP v1.3.5
@@ -6,6 +8,7 @@
    * Can edit the constants as argument such as Stanford Core NLP directory.
    * Adjust parameters not to timeout in high load
    * Other bug fix
+   * Packaging (beta)
 
 ## Requirements
    * [jsonrpclib](https://github.com/joshmarshall/jsonrpclib)
@@ -27,15 +30,19 @@ In other words:
 
 Then, to launch a server:
 
-    python corenlp.py
+    python corenlp/corenlp.py
 
 Optionally, you can specify a host or port:
 
-    python corenlp.py -H 0.0.0.0 -p 3456
+    python corenlp/corenlp.py -H 0.0.0.0 -p 3456
 
 That will run a public JSON-RPC server on port 3456.
+And you can specify Stanford CoreNLP directory:
 
-Assuming you are running on port 8080, the code in `client.py` shows an example parse:
+    python corenlp/corenlp.py -S stanford-corenlp-full-2013-04-04/
+
+
+Assuming you are running on port 8080 and CoreNLP directory is `stanford-corenlp-full-2013-04-04/` in current directory, the code in `client.py` shows an example parse:
 
     import jsonrpclib
     from simplejson import loads
@@ -108,7 +115,7 @@ That returns a dictionary containing the keys `sentences` and (when applicable) 
 
 To use it in a regular script or to edit/debug it (because errors via RPC are opaque), load the module instead:
 
-    from corenlp import *
+    from corenlp import StanfordCoreNLP
     corenlp_dir = "stanford-corenlp-full-2013-04-04/"
     corenlp = StanfordCoreNLP(corenlp_dir)  # wait a few minutes...
     corenlp.parse("Parse it")
