@@ -1,4 +1,4 @@
-# Tweepy
+# corenlp
 # Copyright 2013- Hiroyoshi Komatsu
 # See LICENSE for details.
 
