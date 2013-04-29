@@ -142,7 +142,16 @@ class StanfordCoreNLP(object):
         classname = "edu.stanford.nlp.pipeline.StanfordCoreNLP"
         # include the properties file, so you can change defaults
         # but any changes in output format will break parse_parser_results()
-        props = "-props default.properties"
+        property_name = "default.properties"
+        current_dir_pr = os.path.dirname(os.path.abspath( __file__ )) +"/"+ property_name
+        print current_dir_pr
+        if os.path.exists(property_name):
+            props = "-props %s" % (property_name)
+        elif os.path.exists(current_dir_pr):
+            props = "-props %s" % (current_dir_pr)
+        else:
+            print "Error! Cannot locate: default.properties"
+            sys.exit(1)
 
         # add and check classpaths
         jars = [corenlp_path +"/"+ jar for jar in jars]
