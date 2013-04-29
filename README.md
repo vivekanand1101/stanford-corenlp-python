@@ -6,6 +6,7 @@
    * Can edit the constants as argument such as Stanford Core NLP directory.
    * Adjust parameters not to timeout in high load
    * Other bug fix
+   * Packaging
 
 ## Requirements
    * [jsonrpclib](https://github.com/joshmarshall/jsonrpclib)
@@ -21,17 +22,21 @@ In other words:
 
     sudo pip install jsonrpclib pexpect unidecode   # unidecode is optional
     git clone https://bitbucket.org/torotoki/corenlp-python.git
-	  cd corenlp-python
+	  cd corenlp-python/corenlp
     wget http://nlp.stanford.edu/software/stanford-corenlp-full-2013-04-04.zip
     unzip stanford-corenlp-full-2013-04-04.zip
 
 Then, to launch a server:
 
-    python corenlp.py
+    python corenlp/corenlp.py
 
 Optionally, you can specify a host or port:
 
-    python corenlp.py -H 0.0.0.0 -p 3456
+    python corenlp/corenlp.py -H 0.0.0.0 -p 3456
+
+And you can specify Stanford CoreNLP directory:
+
+    python corenlp/corenlp.py -S stanford-corenlp-full-2013-04-04/
 
 That will run a public JSON-RPC server on port 3456.
 
