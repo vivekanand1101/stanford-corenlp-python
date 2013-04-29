@@ -3,7 +3,7 @@
 # See LICENSE for details.
 
 """
-Tweepy Twitter API library
+Stanford CoreNLP Python wrapper
 """
 __version__ = '1.0.3'
 __author__ = 'Hiroyoshi Komatsu'
