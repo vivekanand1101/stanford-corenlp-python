@@ -151,8 +151,14 @@ class StanfordCoreNLP(object):
                 print "Error! Cannot locate %s" % jar
                 sys.exit(1)
 
+        # add memory limit on JVM
+        if memory:
+            limit = "-Xmx%s" % memory
+        else:
+            limit = ""
+
         # spawn the server
-        start_corenlp = "%s -Xmx%s -cp %s %s %s" % (java_path, memory, ':'.join(jars), classname, props)
+        start_corenlp = "%s %s -cp %s %s %s" % (java_path, limit, ':'.join(jars), classname, props)
         if VERBOSE: print start_corenlp
         self.corenlp = pexpect.spawn(start_corenlp)
 
