@@ -25,7 +25,7 @@ from progressbar import ProgressBar, Fraction
 from unidecode import unidecode
 from jsonrpclib.SimpleJSONRPCServer import SimpleJSONRPCServer
 
-VERBOSE = True
+VERBOSE = False
 STATE_START, STATE_TEXT, STATE_WORDS, STATE_TREE, STATE_DEPENDENCY, STATE_COREFERENCE = 0, 1, 2, 3, 4, 5
 WORD_PATTERN = re.compile('\[([^\]]+)\]')
 CR_PATTERN = re.compile(r"\((\d*),(\d)*,\[(\d*),(\d*)\)\) -> \((\d*),(\d)*,\[(\d*),(\d*)\)\), that is: \"(.*)\" -> \"(.*)\"")
@@ -252,6 +252,7 @@ if __name__ == '__main__':
     """
     The code below starts an JSONRPC server
     """
+    VERBOSE = True
     parser = optparse.OptionParser(usage="%prog [OPTIONS]")
     parser.add_option('-p', '--port', default='8080',
                       help='Port to serve on (default 8080)')
@@ -262,14 +263,14 @@ if __name__ == '__main__':
     options, args = parser.parse_args()
     # server = jsonrpc.Server(jsonrpc.JsonRpc20(),
     #                         jsonrpc.TransportTcpIp(addr=(options.host, int(options.port))))
-    server = SimpleJSONRPCServer((options.host, int(options.port)))
-
-    nlp = StanfordCoreNLP(options.corenlp)
-    server.register_function(nlp.parse)
-
-    print 'Serving on http://%s:%s' % (options.host, options.port)
-    # server.serve()
     try:
+        server = SimpleJSONRPCServer((options.host, int(options.port)))
+
+        nlp = StanfordCoreNLP(options.corenlp)
+        server.register_function(nlp.parse)
+
+        print 'Serving on http://%s:%s' % (options.host, options.port)
+        # server.serve()
         server.serve_forever()
     except KeyboardInterrupt:
         print >>stderr, "Bye."
