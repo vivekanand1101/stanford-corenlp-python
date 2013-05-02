@@ -9,4 +9,4 @@ __version__ = '1.0.3'
 __author__ = 'Hiroyoshi Komatsu'
 __license__ = 'GNU v2+'
 
-from corenlp import StanfordCoreNLP
+from corenlp import StanfordCoreNLP, ParserError, TimeoutError

@@ -31,6 +31,19 @@ WORD_PATTERN = re.compile('\[([^\]]+)\]')
 CR_PATTERN = re.compile(r"\((\d*),(\d)*,\[(\d*),(\d*)\)\) -> \((\d*),(\d)*,\[(\d*),(\d*)\)\), that is: \"(.*)\" -> \"(.*)\"")
 
 
+class ParserError(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
+
+class TimeoutError(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
+
+
 def remove_id(word):
     """Removes the numeric suffix from the parsed recognized words: e.g. 'word-2' > 'word' """
     return word.count("-") == 0 and word or word[0:word.rindex("-")]
@@ -66,7 +79,7 @@ def parse_parser_results(text):
     """
     results = {"sentences": []}
     state = STATE_START
-    for line in unidecode(text).split("\n"):
+    for line in unidecode(text.decode('utf-8')).split("\n"):
         line = line.strip()
 
         if line.startswith("Sentence #"):
@@ -80,7 +93,7 @@ def parse_parser_results(text):
 
         elif state == STATE_WORDS:
             if not line.startswith("[Text="):
-                raise Exception('Parse error. Could not find "[Text=" in: %s' % line)
+                raise ParserError('Parse error. Could not find "[Text=" in: %s' % line)
             for s in WORD_PATTERN.findall(line):
                 sentence['words'].append(parse_bracketed(s))
             state = STATE_TREE
@@ -149,15 +162,13 @@ class StanfordCoreNLP(object):
         elif os.path.exists(current_dir_pr):
             props = "-props %s" % (current_dir_pr)
         else:
-            print "Error! Cannot locate: default.properties"
-            sys.exit(1)
+            raise Exception("Error! Cannot locate: default.properties")
 
         # add and check classpaths
         jars = [corenlp_path +"/"+ jar for jar in jars]
         for jar in jars:
             if not os.path.exists(jar):
-                print "Error! Cannot locate %s" % jar
-                sys.exit(1)
+                raise Exception("Error! Cannot locate: %s") % jar
 
         # add memory limit on JVM
         if memory:
@@ -171,20 +182,25 @@ class StanfordCoreNLP(object):
         self.corenlp = pexpect.spawn(start_corenlp)
 
         # show progress bar while loading the models
-        widgets = ['Loading Models: ', Fraction()]
-        pbar = ProgressBar(widgets=widgets, maxval=5, force_update=True).start()
+        if VERBOSE:
+            widgets = ['Loading Models: ', Fraction()]
+            pbar = ProgressBar(widgets=widgets, maxval=5, force_update=True).start()
         self.corenlp.expect("done.", timeout=20) # Load pos tagger model (~5sec)
-        pbar.update(1)
+        if VERBOSE: pbar.update(1)
         self.corenlp.expect("done.", timeout=200) # Load NER-all classifier (~33sec)
-        pbar.update(2)
+        if VERBOSE: pbar.update(2)
         self.corenlp.expect("done.", timeout=600) # Load NER-muc classifier (~60sec)
-        pbar.update(3)
+        if VERBOSE: pbar.update(3)
         self.corenlp.expect("done.", timeout=600) # Load CoNLL classifier (~50sec)
-        pbar.update(4)
+        if VERBOSE: pbar.update(4)
         self.corenlp.expect("done.", timeout=200) # Loading PCFG (~3sec)
-        pbar.update(5)
+        if VERBOSE: pbar.update(5)
         self.corenlp.expect("Entering interactive shell.")
-        pbar.finish()
+        if VERBOSE: pbar.finish()
+
+    def close(self):
+        self.corenlp.terminate()
+        self.corenlp.close()
 
     def _parse(self, text):
         """
@@ -208,8 +224,8 @@ class StanfordCoreNLP(object):
         # the idea here is that you increase the timeout as a
         # function of the text's length.
         # anything longer than 30 seconds requires that you also
-        # increase timeout=30 in jsonrpc.py
-        max_expected_time = max(30, 3 + len(text) / 20.0)
+        # increase timeout=70 in jsonrpc.py
+        max_expected_time = max(70, 3 + len(text) / 15.0)
         end_time = time.time() + max_expected_time
 
         incoming = ""
@@ -221,10 +237,7 @@ class StanfordCoreNLP(object):
                 time.sleep(0.0001)
             except pexpect.TIMEOUT:
                 if end_time - time.time() < 0:
-                    print "[ERROR] Timeout"
-                    return {'error': "timed out after %f seconds" % max_expected_time,
-                            'input': text,
-                            'output': incoming}
+                    raise TimeoutError("timed out after %f seconds" % max_expected_time)
                 else:
                     continue
             except pexpect.EOF:
