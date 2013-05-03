@@ -198,9 +198,8 @@ class StanfordCoreNLP(object):
         self.corenlp.expect("Entering interactive shell.")
         if VERBOSE: pbar.finish()
 
-    def close(self):
-        self.corenlp.terminate()
-        self.corenlp.close()
+    def close(self, force=True):
+        self.corenlp.close(force=force)
 
     def _parse(self, text):
         """
