@@ -1,4 +1,4 @@
- A Stanford Core NLP Python wrapper
+# A Python wrapper of Stanford Core NLP.
 
 This is a fork of [stanford-corenlp-python](https://github.com/dasmith/stanford-corenlp-python).
 

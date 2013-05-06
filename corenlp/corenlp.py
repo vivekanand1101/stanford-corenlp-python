@@ -300,7 +300,7 @@ if __name__ == '__main__':
         server = SimpleJSONRPCServer((options.host, int(options.port)))
 
         nlp = StanfordCoreNLP(options.corenlp)
-        server.register_function(nlp.json_parse)
+        server.register_function(nlp.parse)
 
         print 'Serving on http://%s:%s' % (options.host, options.port)
         # server.serve()
