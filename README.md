@@ -4,10 +4,10 @@ This is a fork of [stanford-corenlp-python](https://github.com/dasmith/stanford-
 
 ## Edited
    * Update to Stanford CoreNLP v1.3.5
+   * Fix many bugs & improve performance
    * Using jsonrpclib for stability and performance
    * Can edit the constants as argument such as Stanford Core NLP directory.
    * Adjust parameters not to timeout in high load
-   * Other bug fix
    * Packaging (beta)
 
 ## Requirements

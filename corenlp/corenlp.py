@@ -141,10 +141,10 @@ class StanfordCoreNLP(object):
         """
 
         # TODO: Can edit jar constants
-        jars = ["stanford-corenlp-1.3.5.jar",
-                "stanford-corenlp-1.3.5-models.jar",
-                "joda-time.jar",
-                "xom.jar"]
+        # jars = ["stanford-corenlp-1.3.5.jar",
+        #         "stanford-corenlp-1.3.5-models.jar",
+        #         "joda-time.jar",
+        #         "xom.jar"]
         jars = ["stanford-corenlp-1.3.5.jar",
                 "stanford-corenlp-1.3.5-models.jar",
                 "xom.jar",
@@ -168,7 +168,7 @@ class StanfordCoreNLP(object):
         jars = [corenlp_path +"/"+ jar for jar in jars]
         for jar in jars:
             if not os.path.exists(jar):
-                raise Exception("Error! Cannot locate: %s") % jar
+                raise Exception("Error! Cannot locate: %s" % jar)
 
         # add memory limit on JVM
         if memory:
@@ -198,8 +198,19 @@ class StanfordCoreNLP(object):
         self.corenlp.expect("Entering interactive shell.")
         if VERBOSE: pbar.finish()
 
+        # interactive shell
+        self.corenlp.expect("\nNLP> ", timeout=3)
+
     def close(self, force=True):
-        self.corenlp.close(force=force)
+        self.corenlp.terminate(force)
+
+    def isalive(self):
+        return self.corenlp.isalive()
+
+    def __del__(self):
+        # If our child process is still around, kill it
+        if self.isalive():
+            self.close()
 
     def _parse(self, text):
         """
@@ -208,39 +219,41 @@ class StanfordCoreNLP(object):
         It returns a Python data-structure, while the parse()
         function returns a JSON object
         """
-        # clean up anything leftover
-        while True:
-            try:
-                self.corenlp.read_nonblocking (4096, 0.3)
-            except pexpect.TIMEOUT:
-                break
-            except pexpect.EOF:
-                break
 
-        self.corenlp.sendline(text)
+        # CoreNLP interactive shell cannot recognize newline
+        if '\n' in text or '\r' in text:
+            to_send = re.sub("[\r\n]", " ", text).strip()
+        else:
+            to_send = text
+
+        # clean up anything leftover
+        def clean_up():
+            while True:
+                try:
+                    self.corenlp.read_nonblocking (8192, 0.1)
+                except pexpect.TIMEOUT:
+                    break
+        clean_up()
+
+        self.corenlp.sendline(to_send)
 
         # How much time should we give the parser to parse it?
         # the idea here is that you increase the timeout as a
         # function of the text's length.
-        # anything longer than 30 seconds requires that you also
-        # increase timeout=70 in jsonrpc.py
-        max_expected_time = max(70, 3 + len(text) / 15.0)
-        end_time = time.time() + max_expected_time
+        # max_expected_time = max(5.0, 3 + len(to_send) / 5.0)
+        max_expected_time = max(300.0, 3 + len(to_send) / 10.0)
 
-        incoming = ""
-        while True:
-            # Time left, read more data
-            try:
-                incoming += self.corenlp.read_nonblocking(2048, 1)
-                if "\nNLP>" in incoming: break
-                time.sleep(0.0001)
-            except pexpect.TIMEOUT:
-                if end_time - time.time() < 0:
-                    raise TimeoutError("timed out after %f seconds" % max_expected_time)
-                else:
-                    continue
-            except pexpect.EOF:
-                break
+        # repeated_input = self.corenlp.except("\n")  # confirm it
+        t = self.corenlp.expect(["\nNLP> ", pexpect.TIMEOUT], timeout=max_expected_time)
+        incoming = self.corenlp.before
+        if t == 1:
+            # clean up anything when raise pexpect.TIMEOUT error
+            clean_up()
+            print >>sys.stderr, {'error': "timed out after %f seconds" % max_expected_time,
+                                 'input': to_send,
+                                 'output': incoming}
+            raise TimeoutError("Timed out after %d seconds" % max_expected_time)
+            return
 
         if VERBOSE: print "%s\n%s" % ('='*40, incoming)
         try:
@@ -250,6 +263,14 @@ class StanfordCoreNLP(object):
             raise e
 
         return results
+
+    def raw_parse(self, text):
+        """
+        This function takes a text string, sends it to the Stanford parser,
+        reads in the result, parses the results and returns a list
+        with one dictionary entry for each parsed sentence.
+        """
+        return self._parse(text)
 
     def parse(self, text):
         """
@@ -279,11 +300,11 @@ if __name__ == '__main__':
         server = SimpleJSONRPCServer((options.host, int(options.port)))
 
         nlp = StanfordCoreNLP(options.corenlp)
-        server.register_function(nlp.parse)
+        server.register_function(nlp.json_parse)
 
         print 'Serving on http://%s:%s' % (options.host, options.port)
         # server.serve()
         server.serve_forever()
     except KeyboardInterrupt:
-        print >>stderr, "Bye."
+        print >>sys.stderr, "Bye."
         exit()
