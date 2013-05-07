@@ -30,6 +30,11 @@ STATE_START, STATE_TEXT, STATE_WORDS, STATE_TREE, STATE_DEPENDENCY, STATE_COREFE
 WORD_PATTERN = re.compile('\[([^\]]+)\]')
 CR_PATTERN = re.compile(r"\((\d*),(\d)*,\[(\d*),(\d*)\)\) -> \((\d*),(\d)*,\[(\d*),(\d*)\)\), that is: \"(.*)\" -> \"(.*)\"")
 
+class ProcessError(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
 
 class ParserError(Exception):
     def __init__(self, value):
@@ -244,16 +249,23 @@ class StanfordCoreNLP(object):
         max_expected_time = max(300.0, len(to_send) / 2)
 
         # repeated_input = self.corenlp.except("\n")  # confirm it
-        t = self.corenlp.expect(["\nNLP> ", pexpect.TIMEOUT], timeout=max_expected_time)
+        t = self.corenlp.expect(["\nNLP> ", pexpect.TIMEOUT, pexpect.EOF],
+                                timeout=max_expected_time)
         incoming = self.corenlp.before
         if t == 1:
-            # clean up anything when raise pexpect.TIMEOUT error
+            # TIMEOUT, clean up anything when raise pexpect.TIMEOUT error
             clean_up()
             print >>sys.stderr, {'error': "timed out after %f seconds" % max_expected_time,
                                  'input': to_send,
                                  'output': incoming}
             raise TimeoutError("Timed out after %d seconds" % max_expected_time)
-            return
+        elif t == 2:
+            # EOF, probably crash CoreNLP process
+            print >>sys.stderr, {'error': "CoreNLP terminates abnormally while parsing",
+                                 'input': to_send,
+                                 'output': self.corenp.incoming}
+            self.corenlp.close()
+            raise ProcessError("CoreNLP process terminates abnormally while parsing")
 
         if VERBOSE: print "%s\n%s" % ('='*40, incoming)
         try:

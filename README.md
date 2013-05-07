@@ -1,5 +1,6 @@
 # A Python wrapper of Stanford Core NLP tools
 
+
 This is a fork of [stanford-corenlp-python](https://github.com/dasmith/stanford-corenlp-python).
 
 ## Edited
