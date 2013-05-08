@@ -263,7 +263,7 @@ class StanfordCoreNLP(object):
             # EOF, probably crash CoreNLP process
             print >>sys.stderr, {'error': "CoreNLP terminates abnormally while parsing",
                                  'input': to_send,
-                                 'output': self.corenp.incoming}
+                                 'output': incoming}
             self.corenlp.close()
             raise ProcessError("CoreNLP process terminates abnormally while parsing")
 
