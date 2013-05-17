@@ -9,8 +9,8 @@ This is a fork of [stanford-corenlp-python](https://github.com/dasmith/stanford-
    * Using jsonrpclib for stability and performance
    * Can edit the constants as argument such as Stanford Core NLP directory.
    * Adjust parameters not to timeout in high load
+   * Fix a problem on input long texts by Johannes Castner [stanford-corenlp-python](https://github.com/jac2130/stanford-corenlp-python)
    * Packaging
-   * Fix problem of long texts by Johannes Castner [stanford-corenlp-python](https://github.com/jac2130/stanford-corenlp-python)
 
 ## Requirements
    * [jsonrpclib](https://github.com/joshmarshall/jsonrpclib)
@@ -115,18 +115,19 @@ That returns a dictionary containing the keys `sentences` and (when applicable) 
 	                              u'PartOfSpeech': u'.'}]]}],
 	u'coref': [[[[u'It', 1, 0, 0, 1], [u'Hello world', 0, 1, 0, 2]]]]}
 
-To use it in a regular script or to edit/debug it (because errors via RPC are opaque), load the module instead:
+Not to use JSON-RPC, load the module instead:
 
     from corenlp import StanfordCoreNLP
     corenlp_dir = "stanford-corenlp-full-2013-04-04/"
     corenlp = StanfordCoreNLP(corenlp_dir)  # wait a few minutes...
     corenlp.parse("Parse it")
 
-If you need to parse longs texts (more than 30-50 sentences), you have to use a batch_parse function. It reads text files from input directory and returns a generator object of dictionaries that parsed each file results:
+If you need to parse longs texts (more than 30-50 sentences), you have to use a batch_parse() function. It reads text files from input directory and returns a generator object of dictionaries parsed each file results:
 
     from corenlp import batch_process
     raw_text_directory = "sample_raw_text/"
-    batch_process(raw_text_directory)  # It returns a generator object
+    parsed = batch_process(raw_text_directory)  # It returns a generator object
+    print parsed  #=> {'coref': ..., 'sentences': ..., 'file_name': 'new_sample.txt'}
 
 ## Developer
    * Hiroyoshi Komatsu [hiroyoshi.komat@gmail.com]

@@ -186,7 +186,7 @@ def parse_parser_results(text):
 
     return results
 
-def parse_parser_xml_results(xml):
+def parse_parser_xml_results(xml, file_name=""):
     import xmltodict
     from collections import OrderedDict
 
@@ -243,6 +243,8 @@ def parse_parser_xml_results(xml):
                  for j in xrange(len(raw_sent_list))]
 
     results = {'coref':coref_list, 'sentences':sentences}
+    if file_name:
+        results['file_name'] = file_name
 
     return results
 
@@ -259,6 +261,7 @@ def parse_xml_output(input_dir, corenlp_path="stanford-corenlp-full-2013-04-04/"
     #we get a list of the cleaned files that we want to parse:
 
     files = [input_dir+'/'+f for f in os.listdir(input_dir)]
+    file_name = re.sub('.xml$', '', f)
 
     #creating the file list of files to parse
 
@@ -277,7 +280,7 @@ def parse_xml_output(input_dir, corenlp_path="stanford-corenlp-full-2013-04-04/"
         for output_file in os.listdir(xml_dir):
             with open(xml_dir+'/'+output_file, 'r') as xml:
                 parsed = xml.read()
-            yield parse_parser_xml_results(parsed)
+            yield parse_parser_xml_results(parsed, file_name)
     finally:
         file_list.close()
         try:
@@ -434,8 +437,6 @@ if __name__ == '__main__':
                       help='Host to serve on (default localhost; 0.0.0.0 to make public)')
     parser.add_option('-S', '--corenlp', default="stanford-corenlp-full-2013-04-04",
                       help='Stanford CoreNLP tool directory (default stanford-corenlp-full-2013-04-04/)')
-    parser.add_option('-x', '--xml', action="store_true",
-                      help="Using XML format for read CoreNLP outputs (default false, but the option will be true on the future)")
     options, args = parser.parse_args()
     # server = jsonrpc.Server(jsonrpc.JsonRpc20(),
     #                         jsonrpc.TransportTcpIp(addr=(options.host, int(options.port))))
