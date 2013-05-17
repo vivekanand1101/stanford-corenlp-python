@@ -122,12 +122,12 @@ Not to use JSON-RPC, load the module instead:
     corenlp = StanfordCoreNLP(corenlp_dir)  # wait a few minutes...
     corenlp.parse("Parse it")
 
-If you need to parse longs texts (more than 30-50 sentences), you have to use a batch_parse() function. It reads text files from input directory and returns a generator object of dictionaries parsed each file results:
+If you need to parse long texts (more than 30-50 sentences), you have to use a batch_parse() function. It reads text files from input directory and returns a generator object of dictionaries parsed each file results:
 
     from corenlp import batch_process
     raw_text_directory = "sample_raw_text/"
     parsed = batch_process(raw_text_directory)  # It returns a generator object
-    print parsed  #=> {'coref': ..., 'sentences': ..., 'file_name': 'new_sample.txt'}
+    print parsed  #=> [{'coref': ..., 'sentences': ..., 'file_name': 'new_sample.txt'}]
 
 ## Developer
    * Hiroyoshi Komatsu [hiroyoshi.komat@gmail.com]

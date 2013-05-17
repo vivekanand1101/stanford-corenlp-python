@@ -7,7 +7,7 @@ DESCRIPTION = "A Stanford Core NLP wrapper"
 AUTHOR = "Hiroyoshi Komatsu"
 AUTHOR_EMAIL = "hiroyoshi.komat@gmail.com"
 URL = "https://bitbucket.org/torotoki/corenlp-python"
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 
 # Utility function to read the README file.
 # Used for the long_description.  It's nice, because now 1) we have a top level
@@ -24,11 +24,17 @@ setup(
     author=AUTHOR,
     author_email=AUTHOR_EMAIL,
     url=URL,
+    include_package_data=True,
     packages=['corenlp'],
     package_dir = {'corenlp': 'corenlp'},
     package_data = {
         "corenlp": ["default.properties"]
     },
+    install_requires=[
+        "pexpect >= 2.4",
+        "unidecode >= 0.04.12",
+        "xmltodict >= 0.4.6",
+    ],
     # data_files = [
     #     ('corenlp', ["default.properties"]),
     # ],
