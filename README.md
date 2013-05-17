@@ -1,7 +1,7 @@
-# A Python wrapper of Stanford Core NLP tools
+# A Python wrapper for the Java Stanford Core NLP tools
 ---------------------------
 
-This is a fork of [stanford-corenlp-python](https://github.com/dasmith/stanford-corenlp-python).
+This is a fork of [stanford-corenlp-python](https://github.com/dasmith/stanford-corenlp-python)
 
 ## Edited
    * Update to Stanford CoreNLP v1.3.5
@@ -9,7 +9,8 @@ This is a fork of [stanford-corenlp-python](https://github.com/dasmith/stanford-
    * Using jsonrpclib for stability and performance
    * Can edit the constants as argument such as Stanford Core NLP directory.
    * Adjust parameters not to timeout in high load
-   * Packaging (beta)
+   * Packaging
+   * Fix problem of long texts by Johannes Castner [stanford-corenlp-python](https://github.com/jac2130/stanford-corenlp-python)
 
 ## Requirements
    * [jsonrpclib](https://github.com/joshmarshall/jsonrpclib)
@@ -121,20 +122,15 @@ To use it in a regular script or to edit/debug it (because errors via RPC are op
     corenlp = StanfordCoreNLP(corenlp_dir)  # wait a few minutes...
     corenlp.parse("Parse it")
 
-<!--
+If you need longs texts (more than 30-50 sentences), you have to use a batch_parse function. It reads text files from input directory and returns generator object of parsed each file:
 
-## Adding WordNet
-
-Note: wordnet doesn't seem to be supported using this approach.  Looks like you'll need Java.
-
-Download WordNet-3.0 Prolog:  http://wordnetcode.princeton.edu/3.0/WNprolog-3.0.tar.gz
-tar xvfz WNprolog-3.0.tar.gz
-
--->
+   from corenlp import batch_process
+   raw_text_directory = "sample_raw_text/"
+   batch_process(raw_text_directory)  # It returns a generator object of each file
 
 ## Developer
-   * Hiroyoshi Komatsu <hiroyoshi.komat at gmail.com>
-   * Johannes Castner
+   * Hiroyoshi Komatsu [hiroyoshi.komat@gmail.com]
+   * Johannes Castner [jac2130@columbia.edu]
 
 
 Following original README in stanford-corenlp-python.
