@@ -122,11 +122,11 @@ To use it in a regular script or to edit/debug it (because errors via RPC are op
     corenlp = StanfordCoreNLP(corenlp_dir)  # wait a few minutes...
     corenlp.parse("Parse it")
 
-If you need longs texts (more than 30-50 sentences), you have to use a batch_parse function. It reads text files from input directory and returns generator object of parsed each file:
+If you need to parse longs texts (more than 30-50 sentences), you have to use a batch_parse function. It reads text files from input directory and returns a generator object of dictionaries that parsed each file results:
 
     from corenlp import batch_process
     raw_text_directory = "sample_raw_text/"
-    batch_process(raw_text_directory)  # It returns a generator object of each file
+    batch_process(raw_text_directory)  # It returns a generator object
 
 ## Developer
    * Hiroyoshi Komatsu [hiroyoshi.komat@gmail.com]
