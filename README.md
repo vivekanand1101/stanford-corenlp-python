@@ -124,16 +124,16 @@ To use it in a regular script or to edit/debug it (because errors via RPC are op
 
 If you need longs texts (more than 30-50 sentences), you have to use a batch_parse function. It reads text files from input directory and returns generator object of parsed each file:
 
-   from corenlp import batch_process
-   raw_text_directory = "sample_raw_text/"
-   batch_process(raw_text_directory)  # It returns a generator object of each file
+    from corenlp import batch_process
+    raw_text_directory = "sample_raw_text/"
+    batch_process(raw_text_directory)  # It returns a generator object of each file
 
 ## Developer
    * Hiroyoshi Komatsu [hiroyoshi.komat@gmail.com]
    * Johannes Castner [jac2130@columbia.edu]
 
 
-Following original README in stanford-corenlp-python.
+Following are the README in original stanford-corenlp-python.
 
 -------------------------------------
 
