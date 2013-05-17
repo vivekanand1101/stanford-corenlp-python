@@ -1,5 +1,5 @@
 # A Python wrapper of Stanford Core NLP tools
-
+---------------------------
 
 This is a fork of [stanford-corenlp-python](https://github.com/dasmith/stanford-corenlp-python).
 
@@ -131,6 +131,10 @@ Download WordNet-3.0 Prolog:  http://wordnetcode.princeton.edu/3.0/WNprolog-3.0.
 tar xvfz WNprolog-3.0.tar.gz
 
 -->
+
+## Developer
+   * Hiroyoshi Komatsu <hiroyoshi.komat at gmail.com>
+   * Johannes Castner
 
 
 Following original README in stanford-corenlp-python.

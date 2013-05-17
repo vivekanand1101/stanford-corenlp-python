@@ -21,6 +21,8 @@
 
 import json, optparse, os, re, sys, time, traceback
 import pexpect
+import tempfile
+import shutil
 from progressbar import ProgressBar, Fraction
 from unidecode import unidecode
 from jsonrpclib.SimpleJSONRPCServer import SimpleJSONRPCServer
@@ -29,6 +31,15 @@ VERBOSE = False
 STATE_START, STATE_TEXT, STATE_WORDS, STATE_TREE, STATE_DEPENDENCY, STATE_COREFERENCE = 0, 1, 2, 3, 4, 5
 WORD_PATTERN = re.compile('\[([^\]]+)\]')
 CR_PATTERN = re.compile(r"\((\d*),(\d)*,\[(\d*),(\d*)\)\) -> \((\d*),(\d)*,\[(\d*),(\d*)\)\), that is: \"(.*)\" -> \"(.*)\"")
+
+class bc:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+
 
 class ProcessError(Exception):
     def __init__(self, value):
@@ -47,6 +58,48 @@ class TimeoutError(Exception):
         self.value = value
     def __str__(self):
         return repr(self.value)
+
+
+def init_corenlp_command(corenlp_path, memory):
+    """
+    Checks the location of the jar files.
+    Spawns the server as a process.
+    """
+
+
+    # TODO: Can edit jar constants
+    jars = ["stanford-corenlp-1.3.5.jar",
+            "stanford-corenlp-1.3.5-models.jar",
+            "xom.jar",
+            "joda-time.jar",
+            "jollyday.jar"]
+
+    java_path = "java"
+    classname = "edu.stanford.nlp.pipeline.StanfordCoreNLP"
+    # include the properties file, so you can change defaults
+    # but any changes in output format will break parse_parser_results()
+    property_name = "default.properties"
+    current_dir_pr = os.path.dirname(os.path.abspath( __file__ )) +"/"+ property_name
+    if os.path.exists(property_name):
+        props = "-props %s" % (property_name)
+    elif os.path.exists(current_dir_pr):
+        props = "-props %s" % (current_dir_pr)
+    else:
+        raise Exception("Error! Cannot locate: default.properties")
+
+    # add and check classpaths
+    jars = [corenlp_path +"/"+ jar for jar in jars]
+    for jar in jars:
+        if not os.path.exists(jar):
+            raise Exception("Error! Cannot locate: %s" % jar)
+
+    # add memory limit on JVM
+    if memory:
+        limit = "-Xmx%s" % memory
+    else:
+        limit = ""
+
+    return "%s %s -cp %s %s %s" % (java_path, limit, ':'.join(jars), classname, props)
 
 
 def remove_id(word):
@@ -133,8 +186,105 @@ def parse_parser_results(text):
 
     return results
 
+def parse_parser_xml_results(xml):
+    import xmltodict
+    from collections import OrderedDict
 
-class StanfordCoreNLP(object):
+    def extract_words_from_xml(sent_node):
+        exted = map(lambda x: x['word'], sent_node['tokens']['token'])
+        return exted
+
+    #turning the raw xml into a raw python dictionary:
+    raw_dict = xmltodict.parse(xml)
+
+    #making a raw sentence list of dictionaries:
+    raw_sent_list = raw_dict[u'root'][u'document'][u'sentences'][u'sentence']
+    #making a raw coref dictionary:
+    raw_coref_list = raw_dict[u'root'][u'document'][u'coreference'][u'coreference']
+
+    #cleaning up the list ...the problem is that this doesn't come in pairs, as the command line version:
+
+    # To dicrease is for given index different from list index
+    coref_index = [[[eval(raw_coref_list[j][u'mention'][i]['sentence'])-1,
+                     eval(raw_coref_list[j][u'mention'][i]['head'])-1,
+                     eval(raw_coref_list[j][u'mention'][i]['start'])-1,
+                     eval(raw_coref_list[j][u'mention'][i]['end'])-1]
+                    for i in xrange(len(raw_coref_list[j][u'mention']))]
+                   for j in xrange(len(raw_coref_list))]
+
+    coref_list = []
+    for j in xrange(len(coref_index)):
+        coref_list.append(coref_index[j])
+        for k, coref in enumerate(coref_index[j]):
+            exted = raw_sent_list[coref[0]]['tokens']['token'][coref[2]:coref[3]]
+            exted_words = map(lambda x: x['word'], exted)
+            coref_list[j][k].insert(0, ' '.join(exted_words))
+
+    coref_list = [[[coref_list[j][i], coref_list[j][0]]
+                    for i in xrange(len(coref_list[j])) if i != 0]
+                  for j in xrange(len(coref_list))]
+
+    sentences = [{'dependencies': [[dep['dep'][i]['@type'],
+                                    dep['dep'][i]['governor']['#text'],
+                                    dep['dep'][i]['dependent']['#text']]
+                                   for dep in raw_sent_list[j][u'dependencies']
+                                   for i in xrange(len(dep['dep']))
+                                   if dep['@type']=='basic-dependencies'],
+                  'text': extract_words_from_xml(raw_sent_list[j]),
+                  'parsetree': str(raw_sent_list[j]['parse']),
+                  'words': [[str(token['word']), OrderedDict([
+                      ('NamedEntityTag', str(token['NER'])),
+                      ('CharacterOffsetEnd', str(token['CharacterOffsetEnd'])),
+                      ('CharacterOffsetBegin', str(token['CharacterOffsetBegin'])),
+                      ('PartOfSpeech', str(token['POS'])),
+                      ('Lemma', str(token['lemma']))])]
+                            for token in raw_sent_list[j]['tokens'][u'token']]}
+
+                 for j in xrange(len(raw_sent_list))]
+
+    results = {'coref':coref_list, 'sentences':sentences}
+
+    return results
+
+def parse_xml_output(input_dir, corenlp_path="stanford-corenlp-full-2013-04-04/", memory="3g"):
+    """Because interaction with the command-line interface of the CoreNLP
+    tools is limited to very short text bits, it is necessary to parse xml
+    output"""
+    #First, we change to the directory where we place the xml files from the
+    #parser:
+
+    xml_dir = tempfile.mkdtemp()
+    file_list = tempfile.NamedTemporaryFile()
+
+    #we get a list of the cleaned files that we want to parse:
+
+    files = [input_dir+'/'+f for f in os.listdir(input_dir)]
+
+    #creating the file list of files to parse
+
+    file_list.write('\n'.join(files))
+    file_list.seek(0)
+
+    command = init_corenlp_command(corenlp_path, memory)\
+              + ' -filelist %s -outputDirectory %s' % (file_list.name, xml_dir)
+
+    #creates the xml file of parser output:
+
+    os.system(command)
+
+    #reading in the raw xml file:
+    try:
+        for output_file in os.listdir(xml_dir):
+            with open(xml_dir+'/'+output_file, 'r') as xml:
+                parsed = xml.read()
+            yield parse_parser_xml_results(parsed)
+    finally:
+        file_list.close()
+        try:
+            shutil.rmtree(xml_dir)
+        except: pass
+
+class StanfordCoreNLP:
     """
     Command-line interaction with Stanford's CoreNLP java utilities.
     Can be run as a JSON-RPC server or imported as a module.
@@ -145,44 +295,8 @@ class StanfordCoreNLP(object):
         Spawns the server as a process.
         """
 
-        # TODO: Can edit jar constants
-        # jars = ["stanford-corenlp-1.3.5.jar",
-        #         "stanford-corenlp-1.3.5-models.jar",
-        #         "joda-time.jar",
-        #         "xom.jar"]
-        jars = ["stanford-corenlp-1.3.5.jar",
-                "stanford-corenlp-1.3.5-models.jar",
-                "xom.jar",
-                "joda-time.jar",
-                "jollyday.jar"]
-
-        java_path = "java"
-        classname = "edu.stanford.nlp.pipeline.StanfordCoreNLP"
-        # include the properties file, so you can change defaults
-        # but any changes in output format will break parse_parser_results()
-        property_name = "default.properties"
-        current_dir_pr = os.path.dirname(os.path.abspath( __file__ )) +"/"+ property_name
-        if os.path.exists(property_name):
-            props = "-props %s" % (property_name)
-        elif os.path.exists(current_dir_pr):
-            props = "-props %s" % (current_dir_pr)
-        else:
-            raise Exception("Error! Cannot locate: default.properties")
-
-        # add and check classpaths
-        jars = [corenlp_path +"/"+ jar for jar in jars]
-        for jar in jars:
-            if not os.path.exists(jar):
-                raise Exception("Error! Cannot locate: %s" % jar)
-
-        # add memory limit on JVM
-        if memory:
-            limit = "-Xmx%s" % memory
-        else:
-            limit = ""
-
         # spawn the server
-        start_corenlp = "%s %s -cp %s %s %s" % (java_path, limit, ':'.join(jars), classname, props)
+        start_corenlp = init_corenlp_command(corenlp_path, memory)
         if VERBOSE: print start_corenlp
         self.corenlp = pexpect.spawn(start_corenlp)
 
@@ -290,7 +404,22 @@ class StanfordCoreNLP(object):
         reads in the result, parses the results and returns a list
         with one dictionary entry for each parsed sentence, in JSON format.
         """
-        return json.dumps(self._parse(text))
+        return json.dumps(self.raw_parse(text))
+
+
+def batch_parse(input_folder, corenlp_path="stanford-corenlp-full-2013-04-04/", memory="3g"):
+    """
+    This function takes input files,
+    sends list of input files to the Stanford parser,
+    reads in the results from temporary folder in your OS and
+    returns a generator object of list that consist of dictionary entry.
+    ( The function needs xmltodict,
+    and doesn't need init 'StanfordCoreNLP' class. )
+    """
+    if not os.path.exists(input_folder):
+        raise Exception("Not exist input_folder")
+
+    return parse_xml_output(input_folder, corenlp_path, memory)
 
 
 if __name__ == '__main__':
@@ -305,6 +434,8 @@ if __name__ == '__main__':
                       help='Host to serve on (default localhost; 0.0.0.0 to make public)')
     parser.add_option('-S', '--corenlp', default="stanford-corenlp-full-2013-04-04",
                       help='Stanford CoreNLP tool directory (default stanford-corenlp-full-2013-04-04/)')
+    parser.add_option('-x', '--xml', action="store_true",
+                      help="Using XML format for read CoreNLP outputs (default false, but the option will be true on the future)")
     options, args = parser.parse_args()
     # server = jsonrpc.Server(jsonrpc.JsonRpc20(),
     #                         jsonrpc.TransportTcpIp(addr=(options.host, int(options.port))))
