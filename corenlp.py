@@ -125,8 +125,8 @@ class StanfordCoreNLP(object):
         Checks the location of the jar files.
         Spawns the server as a process.
         """
-        jars = ["stanford-corenlp-2012-07-09.jar",
-                "stanford-corenlp-2012-07-06-models.jar",
+        jars = ["stanford-corenlp-1.3.5.jar",
+                "stanford-corenlp-1.3.5-models.jar",
                 "joda-time.jar",
                 "xom.jar"]
        
