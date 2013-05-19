@@ -21,8 +21,8 @@ In other words:
     sudo pip install pexpect unidecode   # unidecode is optional
     git clone git://github.com/dasmith/stanford-corenlp-python.git
 	  cd stanford-corenlp-python
-    wget http://nlp.stanford.edu/software/stanford-corenlp-2012-07-09.tgz
-    tar xvfz stanford-corenlp-2012-07-09.tgz
+    wget http://nlp.stanford.edu/software/stanford-corenlp-1.3.5.tgz
+    tar xvfz stanford-corenlp-1.3.5.tgz
 
 Then, to launch a server:
 
@@ -129,7 +129,7 @@ tar xvfz WNprolog-3.0.tar.gz
 **Stanford CoreNLP tools require a large amount of free memory**.  Java 5+ uses about 50% more RAM on 64-bit machines than 32-bit machines.  32-bit machine users can lower the memory requirements by changing `-Xmx3g` to `-Xmx2g` or even less.
 If pexpect timesout while loading models, check to make sure you have enough memory and can run the server alone without your kernel killing the java process:
 
-	java -cp stanford-corenlp-2012-07-09.jar:stanford-corenlp-2012-07-06-models.jar:xom.jar:joda-time.jar -Xmx3g edu.stanford.nlp.pipeline.StanfordCoreNLP -props default.properties
+	java -cp stanford-corenlp-1.3.5.jar:stanford-corenlp-1.3.5-models.jar:xom.jar:joda-time.jar:jolllyday.jar -Xmx3g edu.stanford.nlp.pipeline.StanfordCoreNLP -props default.properties
 
 You can reach me, Dustin Smith, by sending a message on GitHub or through email (contact information is available [on my webpage](http://web.media.mit.edu/~dustin)).
 
