@@ -128,7 +128,8 @@ class StanfordCoreNLP(object):
         jars = ["stanford-corenlp-1.3.5.jar",
                 "stanford-corenlp-1.3.5-models.jar",
                 "joda-time.jar",
-                "xom.jar"]
+                "xom.jar",
+                "jollyday.jar"]
        
         # if CoreNLP libraries are in a different directory,
         # change the corenlp_path variable to point to them
