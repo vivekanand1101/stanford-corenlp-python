@@ -25,7 +25,7 @@ import tempfile
 import shutil
 from progressbar import ProgressBar, Fraction
 from unidecode import unidecode
-from jsonrpclib.SimpleJSONRPCServer import SimpleJSONRPCServer
+from subprocess import call
 
 VERBOSE = False
 STATE_START, STATE_TEXT, STATE_WORDS, STATE_TREE, STATE_DEPENDENCY, STATE_COREFERENCE = 0, 1, 2, 3, 4, 5
@@ -194,40 +194,49 @@ def parse_parser_xml_results(xml, file_name=""):
         exted = map(lambda x: x['word'], sent_node['tokens']['token'])
         return exted
 
-    #turning the raw xml into a raw python dictionary:
+    # Turning the raw xml into a raw python dictionary:
     raw_dict = xmltodict.parse(xml)
+    document = raw_dict[u'root'][u'document']
 
-    #making a raw sentence list of dictionaries:
-    raw_sent_list = raw_dict[u'root'][u'document'][u'sentences'][u'sentence']
-    #making a raw coref dictionary:
-    raw_coref_list = raw_dict[u'root'][u'document'][u'coreference'][u'coreference']
+    # Making a raw sentence list of dictionaries:
+    raw_sent_list = document[u'sentences'][u'sentence']
 
-    #cleaning up the list ...the problem is that this doesn't come in pairs, as the command line version:
+    if document.get(u'coreference') and document[u'coreference'].get(u'coreference'):
+        # Convert coreferences to the format like python
+        coref_flag = True
 
-    # To dicrease is for given index different from list index
-    coref_index = [[[eval(raw_coref_list[j][u'mention'][i]['sentence'])-1,
-                     eval(raw_coref_list[j][u'mention'][i]['head'])-1,
-                     eval(raw_coref_list[j][u'mention'][i]['start'])-1,
-                     eval(raw_coref_list[j][u'mention'][i]['end'])-1]
-                    for i in xrange(len(raw_coref_list[j][u'mention']))]
-                   for j in xrange(len(raw_coref_list))]
+        # Making a raw coref dictionary:
+        raw_coref_list = document[u'coreference'][u'coreference']
 
-    coref_list = []
-    for j in xrange(len(coref_index)):
-        coref_list.append(coref_index[j])
-        for k, coref in enumerate(coref_index[j]):
-            exted = raw_sent_list[coref[0]]['tokens']['token'][coref[2]:coref[3]]
-            exted_words = map(lambda x: x['word'], exted)
-            coref_list[j][k].insert(0, ' '.join(exted_words))
+        # To dicrease is for given index different from list index
+        coref_index = [[[int(raw_coref_list[j][u'mention'][i]['sentence'])-1,
+                         int(raw_coref_list[j][u'mention'][i]['head'])-1,
+                         int(raw_coref_list[j][u'mention'][i]['start'])-1,
+                         int(raw_coref_list[j][u'mention'][i]['end'])-1]
+                        for i in xrange(len(raw_coref_list[j][u'mention']))]
+                       for j in xrange(len(raw_coref_list))]
 
-    coref_list = [[[coref_list[j][i], coref_list[j][0]]
-                    for i in xrange(len(coref_list[j])) if i != 0]
-                  for j in xrange(len(coref_list))]
+        coref_list = []
+        for j in xrange(len(coref_index)):
+            coref_list.append(coref_index[j])
+            for k, coref in enumerate(coref_index[j]):
+                exted = raw_sent_list[coref[0]]['tokens']['token'][coref[2]:coref[3]]
+                exted_words = map(lambda x: x['word'], exted)
+                coref_list[j][k].insert(0, ' '.join(exted_words))
 
+        coref_list = [[[coref_list[j][i], coref_list[j][0]]
+                        for i in xrange(len(coref_list[j])) if i != 0]
+                      for j in xrange(len(coref_list))]
+    else:
+        coref_flag = False
+
+    # Convert sentences to the format like python
+    # TODO: If there is only one sentence in input sentence,
+    # raw_sent_list is dict and cannot decode following code...
     sentences = [{'dependencies': [[dep['dep'][i]['@type'],
                                     dep['dep'][i]['governor']['#text'],
                                     dep['dep'][i]['dependent']['#text']]
-                                   for dep in raw_sent_list[j][u'dependencies']
+                                   for dep in raw_sent_list.values()[j][u'dependencies']
                                    for i in xrange(len(dep['dep']))
                                    if dep['@type']=='basic-dependencies'],
                   'text': extract_words_from_xml(raw_sent_list[j]),
@@ -238,11 +247,15 @@ def parse_parser_xml_results(xml, file_name=""):
                       ('CharacterOffsetBegin', str(token['CharacterOffsetBegin'])),
                       ('PartOfSpeech', str(token['POS'])),
                       ('Lemma', str(token['lemma']))])]
-                            for token in raw_sent_list[j]['tokens'][u'token']]}
+                            for token in raw_sent_list[j][u'tokens'][u'token']]}
 
-                 for j in xrange(len(raw_sent_list))]
+                 for j in xrange(len(raw_sent_list)) ]
 
-    results = {'coref':coref_list, 'sentences':sentences}
+    if coref_flag:
+        results = {'coref':coref_list, 'sentences':sentences}
+    else:
+        results = {'sentences': sentences}
+
     if file_name:
         results['file_name'] = file_name
 
@@ -261,7 +274,6 @@ def parse_xml_output(input_dir, corenlp_path="stanford-corenlp-full-2013-04-04/"
     #we get a list of the cleaned files that we want to parse:
 
     files = [input_dir+'/'+f for f in os.listdir(input_dir)]
-    file_name = re.sub('.xml$', '', f)
 
     #creating the file list of files to parse
 
@@ -273,19 +285,20 @@ def parse_xml_output(input_dir, corenlp_path="stanford-corenlp-full-2013-04-04/"
 
     #creates the xml file of parser output:
 
-    os.system(command)
+    call(command, shell=True)
 
     #reading in the raw xml file:
+    result = []
     try:
         for output_file in os.listdir(xml_dir):
             with open(xml_dir+'/'+output_file, 'r') as xml:
-                parsed = xml.read()
-            yield parse_parser_xml_results(parsed, file_name)
+                # parsed = xml.read()
+                file_name = re.sub('.xml$', '', os.path.basename(output_file))
+                result.append(parse_parser_xml_results(xml.read(), file_name))
     finally:
         file_list.close()
-        try:
-            shutil.rmtree(xml_dir)
-        except: pass
+        shutil.rmtree(xml_dir)
+    return result
 
 class StanfordCoreNLP:
     """
@@ -366,11 +379,12 @@ class StanfordCoreNLP:
         max_expected_time = max(300.0, len(to_send) / 3.0)
 
         # repeated_input = self.corenlp.except("\n")  # confirm it
-        t = self.corenlp.expect(["\nNLP> ", pexpect.TIMEOUT, pexpect.EOF],
+        t = self.corenlp.expect(["\nNLP> ", pexpect.TIMEOUT, pexpect.EOF,
+                                 "\nWARNING: Parsing of sentence failed, possibly because of out of memory."],
                                 timeout=max_expected_time)
         incoming = self.corenlp.before
         if t == 1:
-            # TIMEOUT, clean up anything when raise pexpect.TIMEOUT error
+            # TIMEOUT, clean up anything left in buffer
             clean_up()
             print >>sys.stderr, {'error': "timed out after %f seconds" % max_expected_time,
                                  'input': to_send,
@@ -383,6 +397,12 @@ class StanfordCoreNLP:
                                  'output': incoming}
             self.corenlp.close()
             raise ProcessError("CoreNLP process terminates abnormally while parsing")
+        elif t == 3:
+            # out of memory
+            print >>sys.stderr, {'error': "WARNING: Parsing of sentence failed, possibly because of out of memory.",
+                                 'input': to_send,
+                                 'output': incoming}
+            return
 
         if VERBOSE: print "%s\n%s" % ('='*40, incoming)
         try:
@@ -429,6 +449,7 @@ if __name__ == '__main__':
     """
     The code below starts an JSONRPC server
     """
+    from jsonrpclib.SimpleJSONRPCServer import SimpleJSONRPCServer
     VERBOSE = True
     parser = optparse.OptionParser(usage="%prog [OPTIONS]")
     parser.add_option('-p', '--port', default='8080',
