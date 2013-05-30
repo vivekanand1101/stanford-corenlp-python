@@ -1,45 +1,54 @@
-# Python interface to Stanford Core NLP tools v1.3.3
+# A Python wrapper for the Java Stanford Core NLP tools
+---------------------------
 
-This is a Python wrapper for Stanford University's NLP group's Java-based [CoreNLP tools](http://nlp.stanford.edu/software/corenlp.shtml).  It can either be imported as a module or run as a JSON-RPC server. Because it uses many large trained models (requiring 3GB RAM on 64-bit machines and usually a few minutes loading time), most applications will probably want to run it as a server.
+This is a fork of [stanford-corenlp-python](https://github.com/dasmith/stanford-corenlp-python)
+
+## Edited
+   * Update to Stanford CoreNLP v1.3.5
+   * Fix many bugs & improve performance
+   * Using jsonrpclib for stability and performance
+   * Can edit the constants as argument such as Stanford Core NLP directory
+   * Adjust parameters not to timeout in high load
+   * Fix a problem on input long texts, by Johannes Castner [stanford-corenlp-python](https://github.com/jac2130/stanford-corenlp-python)
+   * Packaging
+
+## Requirements
+   * [pexpect](http://www.noah.org/wiki/pexpect)
+   * [unidecode](http://pypi.python.org/pypi/Unidecode)
+   * [jsonrpclib](https://github.com/joshmarshall/jsonrpclib) (optionally)
+
+## Download and Usage
+
+To use this program you must [download](http://nlp.stanford.edu/software/corenlp.shtml#Download) and unpack the zip file containing Stanford's CoreNLP package.  By default, `corenlp.py` looks for the Stanford Core NLP folder as a subdirectory of where the script is being run.
 
 
-   * Python interface to Stanford CoreNLP tools: tagging, phrase-structure parsing, dependency parsing, named entity resolution, and coreference resolution.
-   * Runs an JSON-RPC server that wraps the Java server and outputs JSON.
-   * Outputs parse trees which can be used by [nltk](http://nltk.googlecode.com/svn/trunk/doc/howto/tree.html).
+In other words:
 
-
-It requires [pexpect](http://www.noah.org/wiki/pexpect) and (optionally) [unidecode](http://pypi.python.org/pypi/Unidecode) to handle non-ASCII text.  This script includes and uses code from [jsonrpc](http://www.simple-is-better.org/rpc/) and [python-progressbar](http://code.google.com/p/python-progressbar/).
-
-It runs the Stanford CoreNLP jar in a separate process, communicates with the java process using its command-line interface, and makes assumptions about the output of the parser in order to parse it into a Python dict object and transfer it using JSON.  The parser will break if the output changes significantly, but it has been tested on **Core NLP tools version 1.3.3** released 2012-07-09.
-
-## Download and Usage 
-
-To use this program you must [download](http://nlp.stanford.edu/software/corenlp.shtml#Download) and unpack the tgz file containing Stanford's CoreNLP package.  By default, `corenlp.py` looks for the Stanford Core NLP folder as a subdirectory of where the script is being run.
-
-In other words: 
-
-    sudo pip install pexpect unidecode   # unidecode is optional
-    git clone git://github.com/dasmith/stanford-corenlp-python.git
-	  cd stanford-corenlp-python
-    wget http://nlp.stanford.edu/software/stanford-corenlp-1.3.5.tgz
-    tar xvfz stanford-corenlp-1.3.5.tgz
+    sudo pip install jsonrpclib pexpect unidecode   # unidecode is optional
+    git clone https://bitbucket.org/torotoki/corenlp-python.git
+	  cd corenlp-python
+    wget http://nlp.stanford.edu/software/stanford-corenlp-full-2013-04-04.zip
+    unzip stanford-corenlp-full-2013-04-04.zip
 
 Then, to launch a server:
 
-    python corenlp.py
+    python corenlp/corenlp.py
 
 Optionally, you can specify a host or port:
 
-    python corenlp.py -H 0.0.0.0 -p 3456
+    python corenlp/corenlp.py -H 0.0.0.0 -p 3456
 
 That will run a public JSON-RPC server on port 3456.
+And you can specify Stanford CoreNLP directory:
 
-Assuming you are running on port 8080, the code in `client.py` shows an example parse: 
+    python corenlp/corenlp.py -S stanford-corenlp-full-2013-04-04/
 
-    import jsonrpc
+
+Assuming you are running on port 8080 and CoreNLP directory is `stanford-corenlp-full-2013-04-04/` in current directory, the code in `client.py` shows an example parse:
+
+    import jsonrpclib
     from simplejson import loads
-    server = jsonrpc.ServerProxy(jsonrpc.JsonRpc20(),
-            jsonrpc.TransportTcpIp(addr=("127.0.0.1", 8080)))
+    server = jsonrpclib.Server("http://localhost:8080")
 
     result = loads(server.parse("Hello world.  It is so beautiful"))
     print "Result", result
@@ -105,47 +114,28 @@ That returns a dictionary containing the keys `sentences` and (when applicable) 
 	                              u'NamedEntityTag': u'O',
 	                              u'PartOfSpeech': u'.'}]]}],
 	u'coref': [[[[u'It', 1, 0, 0, 1], [u'Hello world', 0, 1, 0, 2]]]]}
-    
-To use it in a regular script or to edit/debug it (because errors via RPC are opaque), load the module instead:
 
-    from corenlp import *
-    corenlp = StanfordCoreNLP()  # wait a few minutes...
+Not to use JSON-RPC, load the module instead:
+
+    from corenlp import StanfordCoreNLP
+    corenlp_dir = "stanford-corenlp-full-2013-04-04/"
+    corenlp = StanfordCoreNLP(corenlp_dir)  # wait a few minutes...
     corenlp.parse("Parse it")
 
-<!--
+If you need to parse long texts (more than 30-50 sentences), you have to use a batch_parse() function. It reads text files from input directory and returns a generator object of dictionaries parsed each file results:
 
-## Adding WordNet
+    from corenlp import batch_parse
+    corenlp_dir = "stanford-corenlp-full-2013-04-04/"
+    raw_text_directory = "sample_raw_text/"
+    parsed = batch_process(raw_text_directory, corenlp_dir)  # It returns a generator object
+    print parsed  #=> [{'coref': ..., 'sentences': ..., 'file_name': 'new_sample.txt'}]
 
-Note: wordnet doesn't seem to be supported using this approach.  Looks like you'll need Java.
-
-Download WordNet-3.0 Prolog:  http://wordnetcode.princeton.edu/3.0/WNprolog-3.0.tar.gz
-tar xvfz WNprolog-3.0.tar.gz 
-
--->
-
-
-## Questions 
-
-**Stanford CoreNLP tools require a large amount of free memory**.  Java 5+ uses about 50% more RAM on 64-bit machines than 32-bit machines.  32-bit machine users can lower the memory requirements by changing `-Xmx3g` to `-Xmx2g` or even less.
-If pexpect timesout while loading models, check to make sure you have enough memory and can run the server alone without your kernel killing the java process:
-
-	java -cp stanford-corenlp-1.3.5.jar:stanford-corenlp-1.3.5-models.jar:xom.jar:joda-time.jar:jolllyday.jar -Xmx3g edu.stanford.nlp.pipeline.StanfordCoreNLP -props default.properties
-
-You can reach me, Dustin Smith, by sending a message on GitHub or through email (contact information is available [on my webpage](http://web.media.mit.edu/~dustin)).
-
-
-# Contributors
-
-This is free and open source software and has benefited from the contribution and feedback of others.  Like Stanford's CoreNLP tools, it is covered under the [GNU General Public License v2 +](http://www.gnu.org/licenses/gpl-2.0.html), which in short means that modifications to this program must maintain the same free and open source distribution policy.
-
-This project has benefited from the contributions of:
-
-  * @jcc Justin Cheng 
-  * Abhaya Agarwal
+## Developer
+   * Hiroyoshi Komatsu [hiroyoshi.komat@gmail.com]
+   * Johannes Castner [jac2130@columbia.edu]
 
 ## Related Projects
 
 These two projects are python wrappers for the [Stanford Parser](http://nlp.stanford.edu/software/lex-parser.shtml), which includes the Stanford Parser, although the Stanford Parser is another project.
   - [stanford-parser-python](http://projects.csail.mit.edu/spatial/Stanford_Parser) uses [JPype](http://jpype.sourceforge.net/) (interface to JVM)
   - [stanford-parser-jython](http://blog.gnucom.cc/2010/using-the-stanford-parser-with-jython/) uses Python
-
