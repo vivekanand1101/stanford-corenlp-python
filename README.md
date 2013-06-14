@@ -127,15 +127,9 @@ If you need to parse long texts (more than 30-50 sentences), you have to use a b
     from corenlp import batch_parse
     corenlp_dir = "stanford-corenlp-full-2013-04-04/"
     raw_text_directory = "sample_raw_text/"
-    parsed = batch_process(raw_text_directory, corenlp_dir)  # It returns a generator object
+    parsed = batch_parse(raw_text_directory, corenlp_dir)  # It returns a generator object
     print parsed  #=> [{'coref': ..., 'sentences': ..., 'file_name': 'new_sample.txt'}]
 
 ## Developer
    * Hiroyoshi Komatsu [hiroyoshi.komat@gmail.com]
    * Johannes Castner [jac2130@columbia.edu]
-
-## Related Projects
-
-These two projects are python wrappers for the [Stanford Parser](http://nlp.stanford.edu/software/lex-parser.shtml), which includes the Stanford Parser, although the Stanford Parser is another project.
-  - [stanford-parser-python](http://projects.csail.mit.edu/spatial/Stanford_Parser) uses [JPype](http://jpype.sourceforge.net/) (interface to JVM)
-  - [stanford-parser-jython](http://blog.gnucom.cc/2010/using-the-stanford-parser-with-jython/) uses Python
