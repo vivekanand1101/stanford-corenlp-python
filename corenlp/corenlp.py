@@ -236,7 +236,7 @@ def parse_parser_xml_results(xml, file_name=""):
     sentences = [{'dependencies': [[dep['dep'][i]['@type'],
                                     dep['dep'][i]['governor']['#text'],
                                     dep['dep'][i]['dependent']['#text']]
-                                   for dep in raw_sent_list.values()[j][u'dependencies']
+                                   for dep in raw_sent_list[j][u'dependencies']
                                    for i in xrange(len(dep['dep']))
                                    if dep['@type']=='basic-dependencies'],
                   'text': extract_words_from_xml(raw_sent_list[j]),
