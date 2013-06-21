@@ -4,7 +4,7 @@
 This is a fork of [stanford-corenlp-python](https://github.com/dasmith/stanford-corenlp-python)
 
 ## Edited
-   * Update to Stanford CoreNLP v2.3.0
+   * Update to Stanford CoreNLP v3.2.0
    * Fix many bugs & improve performance
    * Using jsonrpclib for stability and performance
    * Can edit the constants as argument such as Stanford Core NLP directory
