@@ -68,8 +68,8 @@ def init_corenlp_command(corenlp_path, memory):
 
 
     # TODO: Can edit jar constants
-    jars = ["stanford-corenlp-1.3.5.jar",
-            "stanford-corenlp-1.3.5-models.jar",
+    jars = ["stanford-corenlp-3.2.0.jar",
+            "stanford-corenlp-3.2.0-models.jar",
             "xom.jar",
             "joda-time.jar",
             "jollyday.jar"]
