@@ -32,6 +32,8 @@ STATE_START, STATE_TEXT, STATE_WORDS, STATE_TREE, STATE_DEPENDENCY, STATE_COREFE
 WORD_PATTERN = re.compile('\[([^\]]+)\]')
 CR_PATTERN = re.compile(r"\((\d*),(\d)*,\[(\d*),(\d*)\)\) -> \((\d*),(\d)*,\[(\d*),(\d*)\)\), that is: \"(.*)\" -> \"(.*)\"")
 
+DIRECTORY = "stanford-corenlp-full-2013-06-20"
+
 class bc:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -261,7 +263,7 @@ def parse_parser_xml_results(xml, file_name=""):
 
     return results
 
-def parse_xml_output(input_dir, corenlp_path="stanford-corenlp-full-2013-04-04/", memory="3g"):
+def parse_xml_output(input_dir, corenlp_path=DIRECTORY, memory="3g"):
     """Because interaction with the command-line interface of the CoreNLP
     tools is limited to very short text bits, it is necessary to parse xml
     output"""
@@ -305,7 +307,7 @@ class StanfordCoreNLP:
     Command-line interaction with Stanford's CoreNLP java utilities.
     Can be run as a JSON-RPC server or imported as a module.
     """
-    def __init__(self, corenlp_path="stanford-corenlp-full-2013-04-04/", memory="3g"):
+    def __init__(self, corenlp_path=DIRECTORY, memory="3g"):
         """
         Checks the location of the jar files.
         Spawns the server as a process.
@@ -430,7 +432,7 @@ class StanfordCoreNLP:
         return json.dumps(self.raw_parse(text))
 
 
-def batch_parse(input_folder, corenlp_path="stanford-corenlp-full-2013-04-04/", memory="3g"):
+def batch_parse(input_folder, corenlp_path=DIRECTORY, memory="3g"):
     """
     This function takes input files,
     sends list of input files to the Stanford parser,
@@ -456,8 +458,8 @@ if __name__ == '__main__':
                       help='Port to serve on (default 8080)')
     parser.add_option('-H', '--host', default='127.0.0.1',
                       help='Host to serve on (default localhost; 0.0.0.0 to make public)')
-    parser.add_option('-S', '--corenlp', default="stanford-corenlp-full-2013-04-04",
-                      help='Stanford CoreNLP tool directory (default stanford-corenlp-full-2013-04-04/)')
+    parser.add_option('-S', '--corenlp', default=DIRECTORY,
+                      help='Stanford CoreNLP tool directory (default %s)' % DIRECTORY)
     options, args = parser.parse_args()
     # server = jsonrpc.Server(jsonrpc.JsonRpc20(),
     #                         jsonrpc.TransportTcpIp(addr=(options.host, int(options.port))))
