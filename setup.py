@@ -7,7 +7,7 @@ DESCRIPTION = "A Stanford Core NLP wrapper"
 AUTHOR = "Hiroyoshi Komatsu"
 AUTHOR_EMAIL = "hiroyoshi.komat@gmail.com"
 URL = "https://bitbucket.org/torotoki/corenlp-python"
-VERSION = "3.2.0-0"
+VERSION = "3.2.0-1"
 
 # Utility function to read the README file.
 # Used for the long_description.  It's nice, because now 1) we have a top level

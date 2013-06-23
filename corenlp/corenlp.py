@@ -293,18 +293,20 @@ def parse_xml_output(input_dir, corenlp_path=DIRECTORY, memory="3g", raw_output=
     call(command, shell=True)
 
     #reading in the raw xml file:
-    result = []
+    # result = []
     try:
         for output_file in os.listdir(xml_dir):
             with open(xml_dir+'/'+output_file, 'r') as xml:
                 # parsed = xml.read()
                 file_name = re.sub('.xml$', '', os.path.basename(output_file))
-                result.append(parse_parser_xml_results(xml.read(), file_name,
-                                                       raw_output=raw_output))
+                # result.append(parse_parser_xml_results(xml.read(), file_name,
+                #                                        raw_output=raw_output))
+                yield parse_parser_xml_results(xml.read(), file_name,
+                                               raw_output=raw_output)
     finally:
         file_list.close()
         shutil.rmtree(xml_dir)
-    return result
+    # return result
 
 class StanfordCoreNLP:
     """

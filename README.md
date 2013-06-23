@@ -1,7 +1,7 @@
 # A Python wrapper for the Java Stanford Core NLP tools
 ---------------------------
 
-This is a fork of [stanford-corenlp-python](https://github.com/dasmith/stanford-corenlp-python)
+This is a fork of Dustin Smith's [stanford-corenlp-python](https://github.com/dasmith/stanford-corenlp-python). A Python interface to [Stanford CoreNLP](http://nlp.stanford.edu/software/corenlp.shtml). It can either be python package, or run as a JSON-RPC server.
 
 ## Edited
    * Update to Stanford CoreNLP v3.2.0
@@ -129,6 +129,12 @@ If you need to parse long texts (more than 30-50 sentences), you have to use a b
     raw_text_directory = "sample_raw_text/"
     parsed = batch_parse(raw_text_directory, corenlp_dir)  # It returns a generator object
     print parsed  #=> [{'coref': ..., 'sentences': ..., 'file_name': 'new_sample.txt'}]
+
+The function uses XML output feature of Stanford CoreNLP, and you can take all information by `raw_output` option. If true, CoreNLP's XML is returned as a dictionary without converting the format.
+
+    parsed = batch_parse(raw_text_directory, corenlp_dir, raw_output=True)
+
+(note: The function requires xmltodict now, you must install it by `sudo pip install xmltodict`)
 
 ## Developer
    * Hiroyoshi Komatsu [hiroyoshi.komat@gmail.com]
