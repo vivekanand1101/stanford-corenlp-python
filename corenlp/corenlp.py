@@ -188,7 +188,7 @@ def parse_parser_results(text):
 
     return results
 
-def parse_parser_xml_results(xml, file_name=""):
+def parse_parser_xml_results(xml, file_name="", raw_output=False):
     import xmltodict
     from collections import OrderedDict
 
@@ -198,6 +198,9 @@ def parse_parser_xml_results(xml, file_name=""):
 
     # Turning the raw xml into a raw python dictionary:
     raw_dict = xmltodict.parse(xml)
+    if raw_output:
+        return raw_dict
+
     document = raw_dict[u'root'][u'document']
 
     # Making a raw sentence list of dictionaries:
@@ -263,7 +266,7 @@ def parse_parser_xml_results(xml, file_name=""):
 
     return results
 
-def parse_xml_output(input_dir, corenlp_path=DIRECTORY, memory="3g"):
+def parse_xml_output(input_dir, corenlp_path=DIRECTORY, memory="3g", raw_output=False):
     """Because interaction with the command-line interface of the CoreNLP
     tools is limited to very short text bits, it is necessary to parse xml
     output"""
@@ -296,7 +299,8 @@ def parse_xml_output(input_dir, corenlp_path=DIRECTORY, memory="3g"):
             with open(xml_dir+'/'+output_file, 'r') as xml:
                 # parsed = xml.read()
                 file_name = re.sub('.xml$', '', os.path.basename(output_file))
-                result.append(parse_parser_xml_results(xml.read(), file_name))
+                result.append(parse_parser_xml_results(xml.read(), file_name,
+                                                       raw_output=raw_output))
     finally:
         file_list.close()
         shutil.rmtree(xml_dir)
@@ -432,19 +436,20 @@ class StanfordCoreNLP:
         return json.dumps(self.raw_parse(text))
 
 
-def batch_parse(input_folder, corenlp_path=DIRECTORY, memory="3g"):
+def batch_parse(input_folder, corenlp_path=DIRECTORY, memory="3g", raw_output=False):
     """
     This function takes input files,
     sends list of input files to the Stanford parser,
     reads in the results from temporary folder in your OS and
     returns a generator object of list that consist of dictionary entry.
+    If raw_output is true, the dictionary returned will correspond exactly to XML.
     ( The function needs xmltodict,
     and doesn't need init 'StanfordCoreNLP' class. )
     """
     if not os.path.exists(input_folder):
         raise Exception("Not exist input_folder")
 
-    return parse_xml_output(input_folder, corenlp_path, memory)
+    return parse_xml_output(input_folder, corenlp_path, memory, raw_output=raw_output)
 
 
 if __name__ == '__main__':
