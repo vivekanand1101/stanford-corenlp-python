@@ -1,7 +1,7 @@
 # A Python wrapper for the Java Stanford Core NLP tools
 ---------------------------
 
-This is a fork of Dustin Smith's [stanford-corenlp-python](https://github.com/dasmith/stanford-corenlp-python). A Python interface to [Stanford CoreNLP](http://nlp.stanford.edu/software/corenlp.shtml). It can either be python package, or run as a JSON-RPC server.
+This is a fork of Dustin Smith's [stanford-corenlp-python](https://github.com/dasmith/stanford-corenlp-python), a Python interface to [Stanford CoreNLP](http://nlp.stanford.edu/software/corenlp.shtml). It can either use as python package, or run as a JSON-RPC server.
 
 ## Edited
    * Update to Stanford CoreNLP v3.2.0
@@ -24,7 +24,7 @@ To use this program you must [download](http://nlp.stanford.edu/software/corenlp
 
 In other words:
 
-    sudo pip install jsonrpclib pexpect unidecode   # unidecode is optional
+    sudo pip install pexpect unidecode jsonrpclib   # jsonrpclib is optional
     git clone https://bitbucket.org/torotoki/corenlp-python.git
 	  cd corenlp-python
     wget http://nlp.stanford.edu/software/stanford-corenlp-full-2013-06-20.zip
@@ -120,9 +120,9 @@ Not to use JSON-RPC, load the module instead:
     from corenlp import StanfordCoreNLP
     corenlp_dir = "stanford-corenlp-full-2013-06-20/"
     corenlp = StanfordCoreNLP(corenlp_dir)  # wait a few minutes...
-    corenlp.parse("Parse it")
+    corenlp.raw_parse("Parse it")
 
-If you need to parse long texts (more than 30-50 sentences), you have to use a batch_parse() function. It reads text files from input directory and returns a generator object of dictionaries parsed each file results:
+If you need to parse long texts (more than 30-50 sentences), you must use a `batch_parse` function. It reads text files from input directory and returns a generator object of dictionaries parsed each file results:
 
     from corenlp import batch_parse
     corenlp_dir = "stanford-corenlp-full-2013-06-20/"
@@ -134,7 +134,7 @@ The function uses XML output feature of Stanford CoreNLP, and you can take all i
 
     parsed = batch_parse(raw_text_directory, corenlp_dir, raw_output=True)
 
-(note: The function requires xmltodict now, you must install it by `sudo pip install xmltodict`)
+(note: The function requires xmltodict now, you should install it by `sudo pip install xmltodict`)
 
 ## Developer
    * Hiroyoshi Komatsu [hiroyoshi.komat@gmail.com]
