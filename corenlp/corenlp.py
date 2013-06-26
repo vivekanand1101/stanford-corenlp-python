@@ -99,7 +99,7 @@ def init_corenlp_command(corenlp_path, memory, properties):
     elif os.path.exists(current_dir_pr):
         props = "-props %s" % (current_dir_pr)
     else:
-        raise Exception("Error! Cannot locate: " % properties)
+        raise Exception("Error! Cannot locate: %s" % properties)
 
     # add and check classpaths
     jars = [corenlp_path + "/" + jar for jar in jars]
@@ -469,7 +469,7 @@ def batch_parse(input_folder, corenlp_path=DIRECTORY, memory="3g", raw_output=Fa
     and doesn't need init 'StanfordCoreNLP' class. )
     """
     if not os.path.exists(input_folder):
-        raise Exception("Not exist input_folder")
+        raise Exception("input_folder does not exist")
 
     return parse_xml_output(input_folder, corenlp_path, memory, raw_output=raw_output)
 
