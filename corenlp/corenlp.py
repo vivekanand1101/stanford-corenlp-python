@@ -139,7 +139,7 @@ def parse_parser_results(text):
     """
     results = {"sentences": []}
     state = STATE_START
-    for line in unidecode(text.decode('utf-8')).split("\n"):
+    for line in text.split("\n"):
         line = line.strip()
 
         if line.startswith("Sentence #"):
