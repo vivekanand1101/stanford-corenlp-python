@@ -511,11 +511,15 @@ if __name__ == '__main__':
             server = SimpleJSONRPCServer((options.host, int(options.port)))
             lb = CoreNLPLoadBalancer(options)
             server.register_function(lb.send)
-            server.register_function(lb.receive)
+            server.register_function(lb.getAll)
+            server.register_function(lb.getCompleted)
+            server.register_function(lb.getForKey)
             
             print 'Serving on http://%s:%s, with servers on ports %s' % (options.host, options.port, options.ports)
 
             server.serve_forever()
     except KeyboardInterrupt:
+        if options.ports:
+            lb.shutdown()
         print >>sys.stderr, "Bye."
         exit()

@@ -11,7 +11,7 @@ import sys, jsonrpclib, os
 
 server = jsonrpclib.Server(sys.argv[1])
 filename = sys.argv[2]
-text = "\n".join(open(filename, r)).readlines()
+text = "\n".join(open(filename, 'r').readlines())
 
 print server.parse(text)
 
