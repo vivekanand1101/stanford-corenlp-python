@@ -28,6 +28,7 @@ import traceback
 import pexpect
 import tempfile
 import shutil
+from loadbalancer import CoreNLPLoadBalancer
 from progressbar import ProgressBar, Fraction
 from unidecode import unidecode
 from subprocess import call
@@ -74,7 +75,7 @@ class TimeoutError(Exception):
 
     def __str__(self):
         return repr(self.value)
-
+            
 
 def init_corenlp_command(corenlp_path, memory, properties):
     """
@@ -482,6 +483,8 @@ if __name__ == '__main__':
     parser = optparse.OptionParser(usage="%prog [OPTIONS]")
     parser.add_option('-p', '--port', default='8080',
                       help='Port to serve on (default 8080)')
+    parser.add_option('-o', '--ports', default=None,
+                      help='Multiple ports, separated by commas')
     parser.add_option('-H', '--host', default='127.0.0.1',
                       help='Host to serve on (default localhost; 0.0.0.0 to make public)')
     parser.add_option('-q', '--quiet', action='store_false', default=True, dest='verbose',
@@ -495,14 +498,28 @@ if __name__ == '__main__':
     # server = jsonrpc.Server(jsonrpc.JsonRpc20(),
     #                         jsonrpc.TransportTcpIp(addr=(options.host, int(options.port))))
     try:
-        server = SimpleJSONRPCServer((options.host, int(options.port)))
+        if not options.ports:
+            server = SimpleJSONRPCServer((options.host, int(options.port)))
 
-        nlp = StanfordCoreNLP(options.corenlp, properties=options.properties)
-        server.register_function(nlp.parse)
+            nlp = StanfordCoreNLP(options.corenlp, properties=options.properties)
+            server.register_function(nlp.parse)
 
-        print 'Serving on http://%s:%s' % (options.host, options.port)
-        # server.serve()
-        server.serve_forever()
+            print 'Serving on http://%s:%s' % (options.host, options.port)
+            
+            server.serve_forever()
+        else:
+            server = SimpleJSONRPCServer((options.host, int(options.port)))
+            lb = CoreNLPLoadBalancer(options)
+            server.register_function(lb.send)
+            server.register_function(lb.getAll)
+            server.register_function(lb.getCompleted)
+            server.register_function(lb.getForKey)
+            
+            print 'Serving on http://%s:%s, with servers on ports %s' % (options.host, options.port, options.ports)
+
+            server.serve_forever()
     except KeyboardInterrupt:
+        if options.ports:
+            lb.shutdown()
         print >>sys.stderr, "Bye."
         exit()
