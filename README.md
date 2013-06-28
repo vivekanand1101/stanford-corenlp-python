@@ -4,6 +4,7 @@
 This is a fork of Dustin Smith's [stanford-corenlp-python](https://github.com/dasmith/stanford-corenlp-python), a Python interface to [Stanford CoreNLP](http://nlp.stanford.edu/software/corenlp.shtml). It can either use as python package, or run as a JSON-RPC server.
 
 ## Edited
+   * Added multi-threaded load balancing
    * Update to Stanford CoreNLP v3.2.0
    * Fix many bugs & improve performance
    * Using jsonrpclib for stability and performance
@@ -38,6 +39,10 @@ Optionally, you can specify a host or port:
 
     python corenlp/corenlp.py -H 0.0.0.0 -p 3456
 
+For additional concurrency, you can add a load-balancing layer on top:
+
+    python corenlp/corenlp.py --ports=8081,8082,8083,8084
+
 That will run a public JSON-RPC server on port 3456.
 And you can specify Stanford CoreNLP directory:
 
@@ -52,6 +57,24 @@ Assuming you are running on port 8080 and CoreNLP directory is `stanford-corenlp
 
     result = loads(server.parse("Hello world.  It is so beautiful"))
     print "Result", result
+
+If you are using the load balancing component, then you can use the following approach:
+
+    import jsonrpclib
+    from simplejson import loads
+    server = jsonrpclib.Server("http://localhost:8080")
+
+    result = loads(server.send("Hello world.  It is so beautiful"))
+    print "Result", server.getForKey(result['key'])
+
+    # asynchronous parsing and retrieval
+    sents = [ 'add in as many sentences as you want', 'your mileage may vary' ]
+    for sent in sents:
+    	server.send(sent)
+    # this approach is non-blocking
+    print server.getCompleted()
+    # this approach waits for all in-progress parses to finish (i.e. blocks)
+    print server.getAll()
 
 That returns a dictionary containing the keys `sentences` and (when applicable) `corefs`. The key `sentences` contains a list of dictionaries for each sentence, which contain `parsetree`, `text`, `tuples` containing the dependencies, and `words`, containing information about parts of speech, NER, etc:
 
@@ -139,3 +162,5 @@ The function uses XML output feature of Stanford CoreNLP, and you can take all i
 ## Developer
    * Hiroyoshi Komatsu [hiroyoshi.komat@gmail.com]
    * Johannes Castner [jac2130@columbia.edu]
+   * Robert Elwell [robert@wikia-inc.com]
+   * Tristan Chong [tristan@wikia-inc.com]
