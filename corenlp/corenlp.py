@@ -189,17 +189,16 @@ def parse_parser_results(text):
                     sentence['dependencies'].append(tuple([rel, left, right]))
 
         elif state == STATE_COREFERENCE:
-            if "Coreference set" in lines[index-1]:
-                coref_set = []
+            if 'Coreference set' in line:
                 if 'coref' not in results:
                     results['coref'] = []
-
+                coref_set = []
+                results['coref'].append(coref_set)
+            else:
                 for src_i, src_pos, src_l, src_r, sink_i, sink_pos, sink_l, sink_r, src_word, sink_word in CR_PATTERN.findall(line):
                     src_i, src_pos, src_l, src_r = int(src_i) - 1, int(src_pos) - 1, int(src_l) - 1, int(src_r) - 1
                     sink_i, sink_pos, sink_l, sink_r = int(sink_i) - 1, int(sink_pos) - 1, int(sink_l) - 1, int(sink_r) - 1
-                    coref_set.extend(((src_word, src_i, src_pos, src_l, src_r), (sink_word, sink_i, sink_pos, sink_l, sink_r)))
-                results['coref'].extend(coref_set)
-
+                    coref_set.append(((src_word, src_i, src_pos, src_l, src_r), (sink_word, sink_i, sink_pos, sink_l, sink_r)))
     return results
 
 
