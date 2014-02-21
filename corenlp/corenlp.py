@@ -28,7 +28,6 @@ import traceback
 import pexpect
 import tempfile
 import shutil
-from loadbalancer import CoreNLPLoadBalancer
 from progressbar import ProgressBar, Fraction
 from unidecode import unidecode
 from subprocess import call
@@ -36,9 +35,9 @@ from subprocess import call
 VERBOSE = False
 STATE_START, STATE_TEXT, STATE_WORDS, STATE_TREE, STATE_DEPENDENCY, STATE_COREFERENCE = 0, 1, 2, 3, 4, 5
 WORD_PATTERN = re.compile('\[([^\]]+)\]')
-CR_PATTERN = re.compile(r"\((\d*),(\d)*,\[(\d*),(\d*)[\]\)]\) -> \((\d*),(\d)*,\[(\d*),(\d*)[\]\)]\), that is: \"(.*)\" -> \"(.*)\"")
+CR_PATTERN = re.compile(r"\((\d*),(\d)*,\[(\d*),(\d*)\)\) -> \((\d*),(\d)*,\[(\d*),(\d*)\)\), that is: \"(.*)\" -> \"(.*)\"")
 
-DIRECTORY = "stanford-corenlp-full-2014-01-04"
+DIRECTORY = "stanford-corenlp-full-2013-06-20"
 
 
 class bc:
@@ -75,7 +74,16 @@ class TimeoutError(Exception):
 
     def __str__(self):
         return repr(self.value)
-            
+
+
+class OutOfMemoryError(Exception):
+
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return repr(self.value)
+
 
 def init_corenlp_command(corenlp_path, memory, properties):
     """
@@ -84,21 +92,22 @@ def init_corenlp_command(corenlp_path, memory, properties):
     """
 
     # TODO: Can edit jar constants
-    jars = ["stanford-corenlp-3.3.1.jar",
-            "stanford-corenlp-3.3.1-models.jar",
+    jars = ["stanford-corenlp-3.2.0.jar",
+            "stanford-corenlp-3.2.0-models.jar",
             "xom.jar",
             "joda-time.jar",
-            "jollyday.jar"]
+            "jollyday.jar"
+            ]
 
     java_path = "java"
     classname = "edu.stanford.nlp.pipeline.StanfordCoreNLP"
     # include the properties file, so you can change defaults
     # but any changes in output format will break parse_parser_results()
-    current_dir_pr = os.path.dirname(os.path.abspath(__file__)) + "/" + properties
+    current_dir_pr =  os.path.dirname(os.path.abspath(__file__)) + "/" + properties
     if os.path.exists(properties):
-        props = "-props %s" % (properties)
+        props = "-props %s" % (properties.replace(" ", "\\ "))
     elif os.path.exists(current_dir_pr):
-        props = "-props %s" % (current_dir_pr)
+        props = "-props %s" % (current_dir_pr.replace(" ", "\\ "))
     else:
         raise Exception("Error! Cannot locate: %s" % properties)
 
@@ -119,7 +128,7 @@ def init_corenlp_command(corenlp_path, memory, properties):
 
 def remove_id(word):
     """Removes the numeric suffix from the parsed recognized words: e.g. 'word-2' > 'word' """
-    return word.count("-") == 0 and word or word[0:word.rindex("-")]
+    return word.replace("'", "")
 
 
 def parse_bracketed(s):
@@ -152,8 +161,7 @@ def parse_parser_results(text):
     """
     results = {"sentences": []}
     state = STATE_START
-    lines = text.split("\n")
-    for index, line in enumerate(lines):
+    for line in unidecode(text.decode('utf-8')).split("\n"):
         line = line.strip()
 
         if line.startswith("Sentence #"):
@@ -183,13 +191,13 @@ def parse_parser_results(text):
             if len(line) == 0:
                 state = STATE_COREFERENCE
             else:
-                split_entry = re.split("\(|, ", line[:-1])
-                if len(split_entry) == 3:
-                    rel, left, right = map(lambda x: remove_id(x), split_entry)
-                    sentence['dependencies'].append(tuple([rel, left, right]))
+                split_entry = re.split("\(|, |-", line[:-1])
+                if len(split_entry) == 5:
+                    rel, left, leftindex, right, rightindex = map(lambda x: remove_id(x), split_entry)
+                    sentence['dependencies'].append(tuple([rel, left, leftindex, right, rightindex]))
 
         elif state == STATE_COREFERENCE:
-            if 'Coreference set' in line:
+            if "Coreference set" in line:
                 if 'coref' not in results:
                     results['coref'] = []
                 coref_set = []
@@ -199,6 +207,7 @@ def parse_parser_results(text):
                     src_i, src_pos, src_l, src_r = int(src_i) - 1, int(src_pos) - 1, int(src_l) - 1, int(src_r) - 1
                     sink_i, sink_pos, sink_l, sink_r = int(sink_i) - 1, int(sink_pos) - 1, int(sink_l) - 1, int(sink_r) - 1
                     coref_set.append(((src_word, src_i, src_pos, src_l, src_r), (sink_word, sink_i, sink_pos, sink_l, sink_r)))
+
     return results
 
 
@@ -220,60 +229,31 @@ def parse_parser_xml_results(xml, file_name="", raw_output=False):
     # Making a raw sentence list of dictionaries:
     raw_sent_list = document[u'sentences'][u'sentence']
 
-    if document.get(u'coreference') and document[u'coreference'].get(u'coreference'):
-        # Convert coreferences to the format like python
-        coref_flag = True
-
-        # Making a raw coref dictionary:
-        raw_coref_list = document[u'coreference'][u'coreference']
-
-        # To dicrease is for given index different from list index
-        coref_index = [[[int(raw_coref_list[j][u'mention'][i]['sentence']) - 1,
-                         int(raw_coref_list[j][u'mention'][i]['head']) - 1,
-                         int(raw_coref_list[j][u'mention'][i]['start']) - 1,
-                         int(raw_coref_list[j][u'mention'][i]['end']) - 1]
-                        for i in xrange(len(raw_coref_list[j][u'mention']))]
-                       for j in xrange(len(raw_coref_list))]
-
-        coref_list = []
-        for j in xrange(len(coref_index)):
-            coref_list.append(coref_index[j])
-            for k, coref in enumerate(coref_index[j]):
-                exted = raw_sent_list[coref[0]]['tokens']['token'][coref[2]:coref[3]]
-                exted_words = map(lambda x: x['word'], exted)
-                coref_list[j][k].insert(0, ' '.join(exted_words))
-
-        coref_list = [[[coref_list[j][i], coref_list[j][0]]
-                       for i in xrange(len(coref_list[j])) if i != 0]
-                      for j in xrange(len(coref_list))]
-    else:
-        coref_flag = False
-
     # Convert sentences to the format like python
     # TODO: If there is only one sentence in input sentence,
     # raw_sent_list is dict and cannot decode following code...
     sentences = [{'dependencies': [[dep['dep'][i]['@type'],
                                     dep['dep'][i]['governor']['#text'],
-                                    dep['dep'][i]['dependent']['#text']]
+                                    dep['dep'][i]['governor']['@idx'],
+                                    dep['dep'][i]['dependent']['#text'],
+                                    dep['dep'][i]['dependent']['@idx']]
                                    for dep in raw_sent_list[j][u'dependencies']
+                                   if 'dep' in dep
                                    for i in xrange(len(dep['dep']))
-                                   if dep['@type'] == 'basic-dependencies'],
+                                   if dep['@type'] == 'collapsed-ccprocessed-dependencies'],
                   'text': extract_words_from_xml(raw_sent_list[j]),
                   'parsetree': str(raw_sent_list[j]['parse']),
                   'words': [[str(token['word']), OrderedDict([
-                      ('NamedEntityTag', str(token['NER'])),
                       ('CharacterOffsetEnd', str(token['CharacterOffsetEnd'])),
                       ('CharacterOffsetBegin', str(token['CharacterOffsetBegin'])),
                       ('PartOfSpeech', str(token['POS'])),
                       ('Lemma', str(token['lemma']))])]
-                  for token in raw_sent_list[j][u'tokens'][u'token']]}
+                  for index, token in enumerate(raw_sent_list[j][u'tokens'][u'token'])]}
 
                  for j in xrange(len(raw_sent_list))]
 
-    if coref_flag:
-        results = {'coref': coref_list, 'sentences': sentences}
-    else:
-        results = {'sentences': sentences}
+
+    results = {'sentences': sentences}
 
     if file_name:
         results['file_name'] = file_name
@@ -293,7 +273,7 @@ def parse_xml_output(input_dir, corenlp_path=DIRECTORY, memory="3g", raw_output=
 
     #we get a list of the cleaned files that we want to parse:
 
-    files = [input_dir + '/' + f for f in os.listdir(input_dir)]
+    files = [input_dir + '/' + f for f in os.listdir(input_dir) if f.endswith(".txt")]
 
     #creating the file list of files to parse
 
@@ -331,17 +311,10 @@ class StanfordCoreNLP:
     Can be run as a JSON-RPC server or imported as a module.
     """
 
-    def __init__(self, corenlp_path=DIRECTORY, memory="3g", properties='default.properties'):
-        """
-        Checks the location of the jar files.
-        Spawns the server as a process.
-        """
-
-        # spawn the server
-        start_corenlp = init_corenlp_command(corenlp_path, memory, properties)
+    def _spawn_corenlp(self):
         if VERBOSE:
-            print start_corenlp
-        self.corenlp = pexpect.spawn(start_corenlp)
+            print self.start_corenlp
+        self.corenlp = pexpect.spawn(self.start_corenlp, maxread=8192, searchwindowsize=80)
 
         # show progress bar while loading the models
         if VERBOSE:
@@ -361,7 +334,18 @@ class StanfordCoreNLP:
             pbar.finish()
 
         # interactive shell
-        self.corenlp.expect("\nNLP> ", timeout=3)
+        self.corenlp.expect("\nNLP> ")
+
+    def __init__(self, corenlp_path=DIRECTORY, memory="3g", properties='default.properties', serving=False):
+        """
+        Checks the location of the jar files.
+        Spawns the server as a process.
+        """
+
+        # spawn the server
+        self.serving = serving
+        self.start_corenlp = init_corenlp_command(corenlp_path, memory, properties)
+        self._spawn_corenlp()
 
     def close(self, force=True):
         self.corenlp.terminate(force)
@@ -422,14 +406,13 @@ class StanfordCoreNLP:
             print >>sys.stderr, {'error': "CoreNLP terminates abnormally while parsing",
                                  'input': to_send,
                                  'output': incoming}
-            self.corenlp.close()
             raise ProcessError("CoreNLP process terminates abnormally while parsing")
         elif t == 3:
             # out of memory
             print >>sys.stderr, {'error': "WARNING: Parsing of sentence failed, possibly because of out of memory.",
                                  'input': to_send,
                                  'output': incoming}
-            return
+            raise OutOfMemoryError
 
         if VERBOSE:
             print "%s\n%s" % ('=' * 40, incoming)
@@ -448,7 +431,16 @@ class StanfordCoreNLP:
         reads in the result, parses the results and returns a list
         with one dictionary entry for each parsed sentence.
         """
-        return self._parse(text)
+        try:
+            r = self._parse(text)
+            return r
+        except Exception as e:
+            print e  # Should probably log somewhere instead of printing
+            self.corenlp.close()
+            self._spawn_corenlp()
+            if self.serving:  # We don't want to raise the exception when acting as a server
+                return []
+            raise e
 
     def parse(self, text):
         """
@@ -483,8 +475,6 @@ if __name__ == '__main__':
     parser = optparse.OptionParser(usage="%prog [OPTIONS]")
     parser.add_option('-p', '--port', default='8080',
                       help='Port to serve on (default 8080)')
-    parser.add_option('-o', '--ports', default=None,
-                      help='Multiple ports, separated by commas')
     parser.add_option('-H', '--host', default='127.0.0.1',
                       help='Host to serve on (default localhost; 0.0.0.0 to make public)')
     parser.add_option('-q', '--quiet', action='store_false', default=True, dest='verbose',
@@ -498,28 +488,15 @@ if __name__ == '__main__':
     # server = jsonrpc.Server(jsonrpc.JsonRpc20(),
     #                         jsonrpc.TransportTcpIp(addr=(options.host, int(options.port))))
     try:
-        if not options.ports:
-            server = SimpleJSONRPCServer((options.host, int(options.port)))
+        server = SimpleJSONRPCServer((options.host, int(options.port)))
 
-            nlp = StanfordCoreNLP(options.corenlp, properties=options.properties)
-            server.register_function(nlp.parse)
+        nlp = StanfordCoreNLP(options.corenlp, properties=options.properties, serving=True)
+        server.register_function(nlp.parse)
+        server.register_function(nlp.raw_parse)
 
-            print 'Serving on http://%s:%s' % (options.host, options.port)
-            
-            server.serve_forever()
-        else:
-            server = SimpleJSONRPCServer((options.host, int(options.port)))
-            lb = CoreNLPLoadBalancer(options)
-            server.register_function(lb.send)
-            server.register_function(lb.getAll)
-            server.register_function(lb.getCompleted)
-            server.register_function(lb.getForKey)
-            
-            print 'Serving on http://%s:%s, with servers on ports %s' % (options.host, options.port, options.ports)
-
-            server.serve_forever()
+        print 'Serving on http://%s:%s' % (options.host, options.port)
+        # server.serve()
+        server.serve_forever()
     except KeyboardInterrupt:
-        if options.ports:
-            lb.shutdown()
         print >>sys.stderr, "Bye."
         exit()
