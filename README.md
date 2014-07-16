@@ -1,5 +1,4 @@
 # A Python wrapper for the Java Stanford Core NLP tools
----------------------------
 
 This is a fork of Dustin Smith's [stanford-corenlp-python](https://github.com/dasmith/stanford-corenlp-python), a Python interface to [Stanford CoreNLP](http://nlp.stanford.edu/software/corenlp.shtml). It can either use as python package, or run as a JSON-RPC server.
 
@@ -159,8 +158,10 @@ The function uses XML output feature of Stanford CoreNLP, and you can take all i
 
 (note: The function requires xmltodict now, you should install it by `sudo pip install xmltodict`)
 
-## Developer
+## Developers
    * Hiroyoshi Komatsu [hiroyoshi.komat@gmail.com]
    * Johannes Castner [jac2130@columbia.edu]
    * Robert Elwell [robert@wikia-inc.com]
    * Tristan Chong [tristan@wikia-inc.com]
+   * Aditi Muralidharan [aditi.shrikumar@gmail.com]
+

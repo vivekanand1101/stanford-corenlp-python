@@ -1,11 +1,11 @@
 from setuptools import setup, find_packages
 
 PACKAGE = "corenlp"
-NAME = "wordseer-stanford-corenlp-python"
+NAME = "stanford-corenlp-python"
 DESCRIPTION = "A Stanford Core NLP wrapper (wordseer fork)"
 AUTHOR = "Hiroyoshi Komatsu, Dustin Smith, Aditi Muralidharan"
 AUTHOR_EMAIL = "aditi.shrikumar@gmail.com"
-URL = "https://github.com/silverasm/stanford-corenlp-python"
+URL = "https://github.com/Wordseer/stanford-corenlp-python"
 VERSION = "3.3.0-0"
 
 setup(
@@ -29,3 +29,4 @@ setup(
         "Programming Language :: Python",
     ],
 )
+
