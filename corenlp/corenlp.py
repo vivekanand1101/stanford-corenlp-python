@@ -18,7 +18,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-
 import json
 import optparse
 import os
@@ -193,7 +192,7 @@ def parse_parser_results(text):
             else:
                 split_entry = re.split("\(|, |-", line[:-1])
                 if len(split_entry) == 5:
-                    rel, left, leftindex, right, rightindex = map(lambda x: remove_id(x), split_entry)
+                    rel, left, leftindex, right, rightindex = split_entry
                     sentence['dependencies'].append(tuple([rel, left, leftindex, right, rightindex]))
 
         elif state == STATE_COREFERENCE:
@@ -500,3 +499,4 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         print >>sys.stderr, "Bye."
         exit()
+
