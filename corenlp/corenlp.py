@@ -124,12 +124,6 @@ def init_corenlp_command(corenlp_path, memory, properties):
 
     return "%s %s -cp %s %s %s" % (java_path, limit, ':'.join(jars), classname, props)
 
-
-def remove_id(word):
-    """Removes the numeric suffix from the parsed recognized words: e.g. 'word-2' > 'word' """
-    return word.replace("'", "")
-
-
 def parse_bracketed(s):
     '''Parse word features [abc=... def = ...]
     Also manages to parse out features that have XML within them
