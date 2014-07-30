@@ -27,6 +27,7 @@ import traceback
 import pexpect
 import tempfile
 import shutil
+import re
 from progressbar import ProgressBar, Fraction
 from unidecode import unidecode
 from subprocess import call
@@ -187,6 +188,8 @@ def parse_parser_results(text):
                 split_entry = re.split("\(|, |-", line[:-1])
                 if len(split_entry) == 5:
                     rel, left, leftindex, right, rightindex = split_entry
+                    leftindex = re.sub("[^0-9]", "", leftindex)
+                    rightindex = re.sub("[^0-9]", "", rightindex)
                     sentence['dependencies'].append(tuple([rel, left, leftindex, right, rightindex]))
 
         elif state == STATE_COREFERENCE:
