@@ -32,6 +32,13 @@ from progressbar import ProgressBar, Fraction
 from unidecode import unidecode
 from subprocess import call
 
+use_winpexpect = True
+
+try:
+    import winpexpect
+except ImportError:
+    use_winpexpect = False
+
 VERBOSE = False
 STATE_START, STATE_TEXT, STATE_WORDS, STATE_TREE, STATE_DEPENDENCY, STATE_COREFERENCE = 0, 1, 2, 3, 4, 5
 WORD_PATTERN = re.compile('\[([^\]]+)\]')
@@ -310,7 +317,12 @@ class StanfordCoreNLP:
     def _spawn_corenlp(self):
         if VERBOSE:
             print self.start_corenlp
-        self.corenlp = pexpect.spawn(self.start_corenlp, maxread=8192, searchwindowsize=80)
+        if use_winpexpect:
+            self.corenlp = winpexpect.winspawn(self.start_corenlp, maxread=8192,
+                searchwindowsize=80)
+        else:
+            self.corenlp = pexpect.spawn(self.start_corenlp, maxread=8192,
+                searchwindowsize=80)
 
         # show progress bar while loading the models
         if VERBOSE:
