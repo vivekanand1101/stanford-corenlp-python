@@ -146,11 +146,11 @@ def parse_bracketed(s):
     # Load key-value pairs, substituting as necessary
     for attr, val in re.findall(r"([^=\s]*)=([^\s]*)", s):
         if val in temp:
-            val = temp[val]
+            val = remove_escapes(temp[val])
         if attr == 'Text':
-            word = val
+            word = remove_escapes(val)
         else:
-            attrs[attr] = val
+            attrs[attr] = remove_escapes(val)
     return (word, attrs)
 
 
@@ -171,7 +171,7 @@ def parse_parser_results(text):
             state = STATE_TEXT
 
         elif state == STATE_TEXT:
-            sentence['text'] = line
+            sentence['text'] = remove_escapes(line)
             state = STATE_WORDS
 
         elif state == STATE_WORDS:
@@ -186,7 +186,7 @@ def parse_parser_results(text):
                 state = STATE_DEPENDENCY
                 sentence['parsetree'] = " ".join(sentence['parsetree'])
             else:
-                sentence['parsetree'].append(line)
+                sentence['parsetree'].append(remove_escapes(line))
 
         elif state == STATE_DEPENDENCY:
             if len(line) == 0:
@@ -197,7 +197,9 @@ def parse_parser_results(text):
                     rel, left, leftindex, right, rightindex = split_entry
                     leftindex = re.sub("[^0-9]", "", leftindex)
                     rightindex = re.sub("[^0-9]", "", rightindex)
-                    sentence['dependencies'].append(tuple([rel, left, leftindex, right, rightindex]))
+                    sentence['dependencies'].append(tuple([rel,
+                        remove_escapes(left), leftindex, remove_escapes(right),
+                        rightindex]))
 
         elif state == STATE_COREFERENCE:
             if "Coreference set" in line:
@@ -474,6 +476,24 @@ def batch_parse(input_folder, corenlp_path=DIRECTORY, memory="3g", raw_output=Fa
 
     return parse_xml_output(input_folder, corenlp_path, memory, raw_output=raw_output)
 
+def remove_escapes(text):
+    """Given a string, remove PTB3 escape characters.
+    """
+    escapes = {"-lrb-": "(",
+        "-rrb-": ")",
+        "-lsb-": "[",
+        "-rsb-": "]",
+        "-lcb-": "{",
+        "-rcb-": "}",
+        "-LRB-": "(",
+        "-RRB-": ")",
+        "-LSB-": "[",
+        "-RSB-": "]",
+        "-LCB-": "{",
+        "-RCB-": "}"}
+    if text:
+        pattern = re.compile('|'.join(re.escape(key) for key in escapes.keys()))
+        return pattern.sub(lambda x: escapes[x.group()], text)
 
 if __name__ == '__main__':
     """
