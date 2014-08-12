@@ -1,4 +1,6 @@
+import sys
 from setuptools import setup, find_packages
+import pdb
 
 PACKAGE = "corenlp"
 NAME = "stanford-corenlp-python"
@@ -7,7 +9,18 @@ AUTHOR = "Hiroyoshi Komatsu, Dustin Smith, Aditi Muralidharan"
 AUTHOR_EMAIL = "aditi.shrikumar@gmail.com"
 URL = "https://github.com/Wordseer/stanford-corenlp-python"
 VERSION = "3.3.6-0"
+INSTALLATION_REQS = ["unidecode >= 0.04.12", "xmltodict >= 0.4.6"]
 
+PEXPECT = "pexpect >= 2.4"
+WINPEXPECT = "winpexpect >= 1.5"
+
+pdb.set_trace()
+	
+if "win" in sys.platform:
+	INSTALLATION_REQS.append(WINPEXPECT)
+else:
+	INSTALLATION_REQS.append(PEXPECT)
+	
 setup(
     name=NAME,
     version=VERSION,
@@ -18,11 +31,7 @@ setup(
     packages=find_packages(),
     package_data = {"": ["*.properties"],
         "corenlp": ["*.properties"]},
-    install_requires=[
-        "pexpect >= 2.4",
-        "unidecode >= 0.04.12",
-        "xmltodict >= 0.4.6",
-    ],
+    install_requires=INSTALLATION_REQS,
     classifiers=[
         ("License :: OSI Approved :: GNU General Public License v2 or later "
             "(GPLv2+)"),
