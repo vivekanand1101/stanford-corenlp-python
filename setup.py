@@ -7,13 +7,13 @@ DESCRIPTION = "A Stanford Core NLP wrapper (wordseer fork)"
 AUTHOR = "Hiroyoshi Komatsu, Dustin Smith, Aditi Muralidharan"
 AUTHOR_EMAIL = "aditi.shrikumar@gmail.com"
 URL = "https://github.com/Wordseer/stanford-corenlp-python"
-VERSION = "3.3.7-0"
+VERSION = "3.3.8-0"
 INSTALLATION_REQS = ["unidecode >= 0.04.12", "xmltodict >= 0.4.6"]
 
 PEXPECT = "pexpect >= 2.4"
 WINPEXPECT = "winpexpect >= 1.5"
 
-if "win" in sys.platform:
+if "win32" in sys.platform or "cygwin" in sys.platform:
 	INSTALLATION_REQS.append(WINPEXPECT)
 else:
 	INSTALLATION_REQS.append(PEXPECT)
