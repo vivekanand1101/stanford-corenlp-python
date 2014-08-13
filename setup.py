@@ -1,6 +1,5 @@
 import sys
 from setuptools import setup, find_packages
-import pdb
 
 PACKAGE = "corenlp"
 NAME = "stanford-corenlp-python"
@@ -13,8 +12,6 @@ INSTALLATION_REQS = ["unidecode >= 0.04.12", "xmltodict >= 0.4.6"]
 
 PEXPECT = "pexpect >= 2.4"
 WINPEXPECT = "winpexpect >= 1.5"
-
-pdb.set_trace()
 
 if "win" in sys.platform:
 	INSTALLATION_REQS.append(WINPEXPECT)
