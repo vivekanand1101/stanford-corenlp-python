@@ -6,7 +6,7 @@ DESCRIPTION = "A Stanford Core NLP wrapper (wordseer fork)"
 AUTHOR = "Hiroyoshi Komatsu, Dustin Smith, Aditi Muralidharan"
 AUTHOR_EMAIL = "aditi.shrikumar@gmail.com"
 URL = "https://github.com/Wordseer/stanford-corenlp-python"
-VERSION = "3.3.6-0"
+VERSION = "3.3.7-0"
 
 setup(
     name=NAME,
