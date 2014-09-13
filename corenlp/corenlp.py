@@ -31,6 +31,7 @@ import re
 from progressbar import ProgressBar, Fraction
 from unidecode import unidecode
 from subprocess import call
+import glob
 
 use_winpexpect = True
 
@@ -99,14 +100,8 @@ def init_corenlp_command(corenlp_path, memory, properties):
     """
 
     # TODO: Can edit jar constants
-    jars = ["stanford-corenlp-3.2.0.jar",
-            "stanford-corenlp-3.2.0-models.jar",
-            "xom.jar",
-            "joda-time.jar",
-            "jollyday.jar"
-            ]
-    
-    jars = ["*"]
+    jar_mask = ["*.jar"]
+    jars = glob.glob(os.path.join(corenlp_path, jar))
 
     java_path = "java"
     classname = "edu.stanford.nlp.pipeline.StanfordCoreNLP"
@@ -119,12 +114,6 @@ def init_corenlp_command(corenlp_path, memory, properties):
         props = "-props %s" % (current_dir_pr.replace(" ", "\\ "))
     else:
         raise Exception("Error! Cannot locate: %s" % properties)
-
-    # add and check classpaths
-    jars = [os.path.join(corenlp_path,jar) for jar in jars]
-    for jar in jars:
-        if not os.path.exists(jar) and not "*" in jar:
-            raise Exception("Error! Cannot locate: %s" % jar)
 
     # add memory limit on JVM
     if memory:
