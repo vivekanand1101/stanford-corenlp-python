@@ -105,12 +105,14 @@ def init_corenlp_command(corenlp_path, memory, properties):
             "joda-time.jar",
             "jollyday.jar"
             ]
+    
+    jars = ["*"]
 
     java_path = "java"
     classname = "edu.stanford.nlp.pipeline.StanfordCoreNLP"
     # include the properties file, so you can change defaults
     # but any changes in output format will break parse_parser_results()
-    current_dir_pr =  os.path.dirname(os.path.abspath(__file__)) + "/" + properties
+    current_dir_pr =  os.path.join(os.path.dirname(os.path.abspath(__file__)), properties)
     if os.path.exists(properties):
         props = "-props %s" % (properties.replace(" ", "\\ "))
     elif os.path.exists(current_dir_pr):
@@ -119,9 +121,9 @@ def init_corenlp_command(corenlp_path, memory, properties):
         raise Exception("Error! Cannot locate: %s" % properties)
 
     # add and check classpaths
-    jars = [corenlp_path + "/" + jar for jar in jars]
+    jars = [os.path.join(corenlp_path,jar) for jar in jars]
     for jar in jars:
-        if not os.path.exists(jar):
+        if not os.path.exists(jar) and not "*" in jar:
             raise Exception("Error! Cannot locate: %s" % jar)
 
     # add memory limit on JVM
@@ -278,7 +280,7 @@ def parse_xml_output(input_dir, corenlp_path=DIRECTORY, memory="3g", raw_output=
 
     #we get a list of the cleaned files that we want to parse:
 
-    files = [input_dir + '/' + f for f in os.listdir(input_dir) if f.endswith(".txt")]
+    files = [os.path.join(input_dir , f) for f in os.listdir(input_dir) if f.endswith(".txt")]
 
     #creating the file list of files to parse
 
@@ -296,7 +298,7 @@ def parse_xml_output(input_dir, corenlp_path=DIRECTORY, memory="3g", raw_output=
     # result = []
     try:
         for output_file in os.listdir(xml_dir):
-            with open(xml_dir + '/' + output_file, 'r') as xml:
+            with open(os.path.join(xml_dir + output_file), 'r') as xml:
                 # parsed = xml.read()
                 file_name = re.sub('.xml$', '', os.path.basename(output_file))
                 # result.append(parse_parser_xml_results(xml.read(), file_name,
@@ -358,7 +360,12 @@ class StanfordCoreNLP:
         self._spawn_corenlp()
 
     def close(self, force=True):
-        self.corenlp.terminate(force)
+        global use_winpexpect
+        if use_winpexpect:
+            self.corenlp.terminate()
+        else:
+            self.corenlp.terminate(force)
+        
 
     def isalive(self):
         return self.corenlp.isalive()
