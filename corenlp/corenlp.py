@@ -100,8 +100,8 @@ def init_corenlp_command(corenlp_path, memory, properties):
     """
 
     # TODO: Can edit jar constants
-    jar_mask = ["*.jar"]
-    jars = glob.glob(os.path.join(corenlp_path, jar))
+    jar_mask = "*.jar"
+    jars = glob.glob(os.path.join(corenlp_path, jar_mask))
 
     java_path = "java"
     classname = "edu.stanford.nlp.pipeline.StanfordCoreNLP"
@@ -354,7 +354,7 @@ class StanfordCoreNLP:
             self.corenlp.terminate()
         else:
             self.corenlp.terminate(force)
-        
+
 
     def isalive(self):
         return self.corenlp.isalive()
