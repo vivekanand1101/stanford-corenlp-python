@@ -1,10 +1,11 @@
 # A Python wrapper for the Java Stanford Core NLP tools
 
-This is a fork of Dustin Smith's [stanford-corenlp-python](https://github.com/dasmith/stanford-corenlp-python), a Python interface to [Stanford CoreNLP](http://nlp.stanford.edu/software/corenlp.shtml). It can either use as python package, or run as a JSON-RPC server.
+This is a Wordseer-specific fork of Dustin Smith's [stanford-corenlp-python](https://github.com/dasmith/stanford-corenlp-python), a Python interface to [Stanford CoreNLP](http://nlp.stanford.edu/software/corenlp.shtml). It can either use as python package, or run as a JSON-RPC server.
 
 ## Edited
+   * Tested only with the current annotator configuration: not a general-purpose wrapper
+   * Update to Stanford CoreNLP v3.5.2
    * Added multi-threaded load balancing
-   * Update to Stanford CoreNLP v3.2.0
    * Fix many bugs & improve performance
    * Using jsonrpclib for stability and performance
    * Can edit the constants as argument such as Stanford Core NLP directory
@@ -20,15 +21,6 @@ This is a fork of Dustin Smith's [stanford-corenlp-python](https://github.com/da
 ## Download and Usage
 
 To use this program you must [download](http://nlp.stanford.edu/software/corenlp.shtml#Download) and unpack the zip file containing Stanford's CoreNLP package.  By default, `corenlp.py` looks for the Stanford Core NLP folder as a subdirectory of where the script is being run.
-
-
-In other words:
-
-    sudo pip install pexpect unidecode jsonrpclib   # jsonrpclib is optional
-    git clone https://bitbucket.org/torotoki/corenlp-python.git
-	  cd corenlp-python
-    wget http://nlp.stanford.edu/software/stanford-corenlp-full-2013-06-20.zip
-    unzip stanford-corenlp-full-2013-06-20.zip
 
 Then, to launch a server:
 
@@ -164,4 +156,5 @@ The function uses XML output feature of Stanford CoreNLP, and you can take all i
    * Robert Elwell [robert@wikia-inc.com]
    * Tristan Chong [tristan@wikia-inc.com]
    * Aditi Muralidharan [aditi.shrikumar@gmail.com]
+   * Ian MacFarland [ianmacfarland@ischool.berkeley.edu]
 

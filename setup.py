@@ -4,10 +4,10 @@ from setuptools import setup, find_packages
 PACKAGE = "corenlp"
 NAME = "stanford-corenlp-python"
 DESCRIPTION = "A Stanford Core NLP wrapper (wordseer fork)"
-AUTHOR = "Hiroyoshi Komatsu, Dustin Smith, Aditi Muralidharan"
+AUTHOR = "Hiroyoshi Komatsu, Dustin Smith, Aditi Muralidharan, Ian MacFarland"
 AUTHOR_EMAIL = "aditi.shrikumar@gmail.com"
 URL = "https://github.com/Wordseer/stanford-corenlp-python"
-VERSION = "3.3.9"
+VERSION = "3.3.10"
 INSTALLATION_REQS = ["unidecode >= 0.04.12", "xmltodict >= 0.4.6"]
 
 PEXPECT = "pexpect >= 2.4"
