@@ -1,10 +1,11 @@
 # A Python wrapper for the Java Stanford Core NLP tools
 
-This is a fork of Dustin Smith's [stanford-corenlp-python](https://github.com/dasmith/stanford-corenlp-python), a Python interface to [Stanford CoreNLP](http://nlp.stanford.edu/software/corenlp.shtml). It can either use as python package, or run as a JSON-RPC server.
+This is a Wordseer-specific fork of Dustin Smith's [stanford-corenlp-python](https://github.com/dasmith/stanford-corenlp-python), a Python interface to [Stanford CoreNLP](http://nlp.stanford.edu/software/corenlp.shtml). It can either use as python package, or run as a JSON-RPC server.
 
 ## Edited
+   * Tested only with the current annotator configuration: not a general-purpose wrapper
+   * Update to Stanford CoreNLP v3.5.2
    * Added multi-threaded load balancing
-   * Update to Stanford CoreNLP v3.2.0
    * Fix many bugs & improve performance
    * Using jsonrpclib for stability and performance
    * Can edit the constants as argument such as Stanford Core NLP directory
@@ -164,4 +165,5 @@ The function uses XML output feature of Stanford CoreNLP, and you can take all i
    * Robert Elwell [robert@wikia-inc.com]
    * Tristan Chong [tristan@wikia-inc.com]
    * Aditi Muralidharan [aditi.shrikumar@gmail.com]
+   * Ian MacFarland [ianmacfarland@ischool.berkeley.edu]
 
