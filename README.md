@@ -22,15 +22,6 @@ This is a Wordseer-specific fork of Dustin Smith's [stanford-corenlp-python](htt
 
 To use this program you must [download](http://nlp.stanford.edu/software/corenlp.shtml#Download) and unpack the zip file containing Stanford's CoreNLP package.  By default, `corenlp.py` looks for the Stanford Core NLP folder as a subdirectory of where the script is being run.
 
-
-In other words:
-
-    sudo pip install pexpect unidecode jsonrpclib   # jsonrpclib is optional
-    git clone https://bitbucket.org/torotoki/corenlp-python.git
-	  cd corenlp-python
-    wget http://nlp.stanford.edu/software/stanford-corenlp-full-2013-06-20.zip
-    unzip stanford-corenlp-full-2013-06-20.zip
-
 Then, to launch a server:
 
     python corenlp/corenlp.py
