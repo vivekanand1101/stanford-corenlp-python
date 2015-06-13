@@ -153,7 +153,8 @@ def parse_parser_results(text):
     """
     results = {"sentences": []}
     state = STATE_START
-    for line in unidecode(text.decode('utf-8')).split("\n"):
+    lines = unidecode(text.decode('utf-8')).split("\n")
+    for index, line in enumerate(lines):
         line = line.strip()
 
         if line.startswith("Sentence #"):
@@ -170,15 +171,11 @@ def parse_parser_results(text):
                 raise ParserError('Parse error. Could not find "[Text=" in: %s' % line)
             for s in WORD_PATTERN.findall(line):
                 sentence['words'].append(parse_bracketed(s))
-            state = STATE_TREE
-
-        elif state == STATE_TREE:
-            if len(line) == 0:
+            if not lines[index + 1].startswith("[Text="):
                 state = STATE_DEPENDENCY
-                sentence['parsetree'] = " ".join(sentence['parsetree'])
-            else:
-                sentence['parsetree'].append(remove_escapes(line))
+                # skipping TREE because the new depparse annotator doesn't make a parse tree
 
+        
         elif state == STATE_DEPENDENCY:
             if len(line) == 0:
                 state = STATE_COREFERENCE
