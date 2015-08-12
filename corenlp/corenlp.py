@@ -45,7 +45,7 @@ STATE_START, STATE_TEXT, STATE_WORDS, STATE_TREE, STATE_DEPENDENCY, STATE_COREFE
 WORD_PATTERN = re.compile('\[([^\]]+)\]')
 CR_PATTERN = re.compile(r"\((\d*),(\d)*,\[(\d*),(\d*)\)\) -> \((\d*),(\d)*,\[(\d*),(\d*)\)\), that is: \"(.*)\" -> \"(.*)\"")
 
-DIRECTORY = "stanford-corenlp-full-2013-06-20"
+DIRECTORY = "stanford-corenlp-full-2015-04-20"
 
 
 class bc:
@@ -158,7 +158,11 @@ def parse_parser_results(text):
         line = line.strip()
 
         if line.startswith("Sentence #"):
-            sentence = {'words': [], 'parsetree': [], 'dependencies': []}
+            index = line.index("sentiment: ")
+            length = len("sentiment: ")
+            sentiment = line[(index+length):-2]
+            sentence = {'sentiment': [], 'words': [], 'parsetree': [], 'dependencies': []}
+            sentence['sentiment'] = sentiment
             results["sentences"].append(sentence)
             state = STATE_TEXT
 
